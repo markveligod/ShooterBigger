@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogPlayerCharacter, All, All);
 
@@ -37,6 +38,7 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	this->CheckStateMoveCharacter();
+	this->UpdateLocCamera(DeltaSeconds);
 	this->UpdateRotCamera();
 }
 
@@ -53,6 +55,13 @@ void APlayerCharacter::CheckStateMoveCharacter()
 		this->StateMoveCharacter = EStateMoveCharacter::Running;
 }
 
+void APlayerCharacter::UpdateLocCamera(float DeltaTime)
+{
+	const FVector CurrLocRel = this->SpringArm->GetRelativeLocation();
+	const FVector NewLocRel = UKismetMathLibrary::VInterpTo(CurrLocRel, GetViewLocation(), DeltaTime, 15.0f);
+	this->SpringArm->SetRelativeLocation(NewLocRel);
+}
+
 void APlayerCharacter::UpdateRotCamera()
 {
 	if (this->Pitch == 0.0f) return;
@@ -61,13 +70,25 @@ void APlayerCharacter::UpdateRotCamera()
 	this->SpringArm->SetRelativeRotation(FRotator(Rot.Pitch, 0.0f, 0.0f));
 }
 
+void APlayerCharacter::ActionCrouch()
+{
+	if (GetCharacterMovement()->IsCrouching())
+		UnCrouch();
+	else
+		Crouch();
+}
+
+FVector APlayerCharacter::GetViewLocation() const
+{
+	return (this->ViewOffset + FVector(0.0f, 0.0f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()));
+}
+
 void APlayerCharacter::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	if (this->SpringArm)
 	{
-		const FVector RelLoc = this->ViewOffset + FVector(0.0f, 0.0f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
-		this->SpringArm->SetRelativeLocation(RelLoc);
+		this->SpringArm->SetRelativeLocation(GetViewLocation());
 	}
 }
 
@@ -85,6 +106,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis(FName("Horizontal"), this, &APlayerCharacter::MoveHorizontalInput);
 	PlayerInputComponent->BindAxis(FName("Pitch"), this, &APlayerCharacter::RotatePitchInput);
 	PlayerInputComponent->BindAxis(FName("Yaw"), this, &APlayerCharacter::RotateYawInput);
+	PlayerInputComponent->BindAction(FName("Crouch"), IE_Pressed, this, &APlayerCharacter::ActionCrouch);
 }
 
 void APlayerCharacter::MoveHorizontalInput(float Value)

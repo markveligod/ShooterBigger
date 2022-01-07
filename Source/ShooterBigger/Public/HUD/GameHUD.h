@@ -6,6 +6,7 @@
 #include "HUD/DebugHUD.h"
 #include "GameHUD.generated.h"
 
+class APlayerCharacter;
 class AGamePlayMode;
 /**
  *
@@ -23,4 +24,7 @@ private:
 	// Current pointer on AGamePlayMode class
 	UPROPERTY()
 	AGamePlayMode* GamePlayMode;
+	// Current pointer on APlayerCharacter class
+	UPROPERTY()
+	APlayerCharacter* PlayerCharacter;
 };

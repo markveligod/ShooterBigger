@@ -21,6 +21,13 @@ class SHOOTERBIGGER_API APlayerCharacter : public ACharacter
 public:
 	APlayerCharacter();
 
+	// Getting current state move character
+	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
+	EStateMoveCharacter GetStateMoveCharacter() const { return this->StateMoveCharacter; }
+	// Getting current state aim of player character
+	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
+	EStateAim GetStateAim() const { return this->StateAim; }
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -92,6 +99,7 @@ private:
 	TSubclassOf<AActor> ClassWeapon;
 
 	EStateMoveCharacter StateMoveCharacter = EStateMoveCharacter::None;
+	EStateAim StateAim = EStateAim::None;
 
 	// Returns true if the player is currently holding the run key.
 	bool bHoldingKeyRun;
@@ -148,8 +156,17 @@ private:
 	// Check state character on Frame
 	void CheckStateMoveCharacter();
 
+	// Camera adjustment for independent location when crouching
+	void UpdateLocCamera(float DeltaTime);
+
 	// Camera adjustment for independent rotation when moving
 	void UpdateRotCamera();
+
+	// Crouching controlling
+	void ActionCrouch();
+
+	// Get view location independent from Size capsule component
+	FORCEINLINE FVector GetViewLocation() const;
 
 	friend class AGameHUD;
 };
