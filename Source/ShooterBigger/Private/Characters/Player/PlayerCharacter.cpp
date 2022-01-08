@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Weapons/WeaponBase.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogPlayerCharacter, All, All);
 
@@ -15,15 +16,15 @@ APlayerCharacter::APlayerCharacter()
 
 	// Create spring arm component
 	this->SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName("Spring arm"));
-	this->SpringArm->SetupAttachment(GetCapsuleComponent());
+	this->SpringArm->SetupAttachment(GetRootComponent());
 
 	// Create camera component
 	this->Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
 	this->Camera->SetupAttachment(this->SpringArm);
 
 	// Create mesh base
-	this->MeshBase = CreateDefaultSubobject<USkeletalMeshComponent>(FName("Mesh Hand"));
-	this->MeshBase->SetupAttachment(this->Camera);
+	this->MeshHand = CreateDefaultSubobject<USkeletalMeshComponent>(FName("Mesh Hand"));
+	this->MeshHand->SetupAttachment(this->Camera);
 
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
 }
@@ -31,6 +32,56 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	check(this->MeshHand);
+	check(this->Camera);
+	check(this->SpringArm);
+
+	// Reduction to prevent intersections with objects
+	this->SpringArm->SetWorldScale3D(FVector(0.1f));
+
+	// Begin setup weapons
+	this->SpawnAllWeapons();
+	this->StateWeapon = EStateWeapon::Rifle;
+	this->SetupWeaponOnHand(this->StateWeapon);
+
+	// Setup aiming
+	this->StateAim = EStateAim::Hip;
+}
+
+void APlayerCharacter::SpawnAllWeapons()
+{
+	FTransform ActorTransform;
+	FActorSpawnParameters ActorSpawnParameters;
+
+	ActorSpawnParameters.Owner = this;
+	ActorSpawnParameters.Instigator = this;
+
+	AWeaponBase* TempRifleWeapon = GetWorld()->SpawnActor<AWeaponBase>(this->RifleWeapon, ActorTransform, ActorSpawnParameters);
+	TempRifleWeapon->SetHidden(true);
+	this->InventoryWeapons.Add(EStateWeapon::Rifle, TempRifleWeapon);
+}
+
+void APlayerCharacter::SetupWeaponOnHand(EStateWeapon WeaponState)
+{
+	if (!this->InventoryWeapons.Contains(WeaponState))
+	{
+		UE_LOG(LogPlayerCharacter, Error, TEXT("Name player: %s | Type state: %s | doesn't contain in inventory"), *GetName(),
+			*UEnum::GetValueAsString(WeaponState));
+		return;
+	}
+
+	if (!this->WeaponOnHand)
+	{
+		this->WeaponOnHand = this->InventoryWeapons[WeaponState];
+		this->WeaponOnHand->SetHidden(false);
+		const FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
+		this->WeaponOnHand->AttachToComponent(this->MeshHand, TransformRules, this->SocketWeapon);
+	}
+	else
+	{
+		// ... todo: animation + hidden in game
+	}
 }
 
 void APlayerCharacter::Tick(float DeltaSeconds)
@@ -44,17 +95,22 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 
 void APlayerCharacter::CheckStateMoveCharacter()
 {
-	if (GetCharacterMovement()->MovementMode != MOVE_Walking) return;
+	if (!GetCharacterMovement()->IsWalking()) return;
 
 	const float SpeedVelocity = GetVelocity().Size();
 	if (SpeedVelocity == 0.0f)
+	{
 		this->StateMoveCharacter = EStateMoveCharacter::Idle;
+	}
 	else if (SpeedVelocity > 0.0f && SpeedVelocity <= this->SpeedWalking)
+	{
 		this->StateMoveCharacter = EStateMoveCharacter::Walk;
-	else if (SpeedVelocity == this->SpeedWalking)
+	}
+	else if ((this->SpeedWalking + ((this->SpeedRunning - this->SpeedWalking) / 4)) <= SpeedVelocity && SpeedVelocity <= this->SpeedRunning)
+	{
 		this->StateMoveCharacter = EStateMoveCharacter::Running;
+	}
 }
-
 void APlayerCharacter::UpdateLocCamera(float DeltaTime)
 {
 	const FVector CurrLocRel = this->SpringArm->GetRelativeLocation();
@@ -72,10 +128,58 @@ void APlayerCharacter::UpdateRotCamera()
 
 void APlayerCharacter::ActionCrouch()
 {
+	if (!GetCharacterMovement()->IsWalking()) return;
+
 	if (GetCharacterMovement()->IsCrouching())
+	{
 		UnCrouch();
+	}
 	else
+	{
 		Crouch();
+	}
+}
+void APlayerCharacter::ActionJump()
+{
+	if (GetCharacterMovement()->IsCrouching())
+	{
+		UnCrouch();
+		return;
+	}
+
+	if (GetCharacterMovement()->IsWalking())
+	{
+		Jump();
+		this->ActionStopRun();
+	}
+}
+
+void APlayerCharacter::ActionBoostRun()
+{
+	if (!GetCharacterMovement()->IsWalking()) return;
+
+	if (GetCharacterMovement()->IsCrouching())
+	{
+		UnCrouch();
+	}
+	GetCharacterMovement()->MaxWalkSpeed = this->SpeedRunning;
+}
+
+void APlayerCharacter::ActionStopRun()
+{
+	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
+}
+
+void APlayerCharacter::ActionAim()
+{
+	this->StateAim = EStateAim::Aiming;
+	GetCharacterMovement()->MaxWalkSpeed = this->SpeedAiming;
+}
+
+void APlayerCharacter::ActionHip()
+{
+	this->StateAim = EStateAim::Hip;
+	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
 }
 
 FVector APlayerCharacter::GetViewLocation() const
@@ -107,6 +211,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis(FName("Pitch"), this, &APlayerCharacter::RotatePitchInput);
 	PlayerInputComponent->BindAxis(FName("Yaw"), this, &APlayerCharacter::RotateYawInput);
 	PlayerInputComponent->BindAction(FName("Crouch"), IE_Pressed, this, &APlayerCharacter::ActionCrouch);
+	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &APlayerCharacter::ActionJump);
+	PlayerInputComponent->BindAction(FName("Run"), IE_Pressed, this, &APlayerCharacter::ActionBoostRun);
+	PlayerInputComponent->BindAction(FName("Run"), IE_Released, this, &APlayerCharacter::ActionStopRun);
+	PlayerInputComponent->BindAction(FName("Aim"), IE_Pressed, this, &APlayerCharacter::ActionAim);
+	PlayerInputComponent->BindAction(FName("Aim"), IE_Released, this, &APlayerCharacter::ActionHip);
 }
 
 void APlayerCharacter::MoveHorizontalInput(float Value)

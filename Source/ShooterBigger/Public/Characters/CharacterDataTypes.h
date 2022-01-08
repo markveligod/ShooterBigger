@@ -19,3 +19,12 @@ enum class EStateAim : uint8
 	Hip,
 	Aiming
 };
+
+// The state of the weapon that is in the pseudo inventory
+UENUM()
+enum class EStateWeapon : uint8
+{
+	None = 0,
+	Pistol,
+	Rifle
+};

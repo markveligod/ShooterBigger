@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class AWeaponBase;
 class UCameraComponent;
 class USpringArmComponent;
 class USoundCue;
@@ -23,10 +24,13 @@ public:
 
 	// Getting current state move character
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
-	EStateMoveCharacter GetStateMoveCharacter() const { return this->StateMoveCharacter; }
+	FORCEINLINE EStateMoveCharacter GetStateMoveCharacter() const { return this->StateMoveCharacter; }
 	// Getting current state aim of player character
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
-	EStateAim GetStateAim() const { return this->StateAim; }
+	FORCEINLINE EStateAim GetStateAim() const { return this->StateAim; }
+	// Getting current state weapon of player character
+	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
+	FORCEINLINE EStateWeapon GetStateWeapon() const { return (this->StateWeapon); }
 
 protected:
 	virtual void BeginPlay() override;
@@ -36,14 +40,18 @@ protected:
 
 private:
 	// A component for holding the camera
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = true))
 	USpringArmComponent* SpringArm;
 	// Camera component for player
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UCameraComponent* Camera;
 	// Basic mesh for hands
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	USkeletalMeshComponent* MeshBase;
+	USkeletalMeshComponent* MeshHand;
+
+	// Name of sockets for attaching weapons
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Sockets")
+	FName SocketWeapon = "SOCKET_Weapon";
 
 	// Sound Cue played when this character aims their weapon. This can just be left empty for games that do not need an aiming sound.
 	UPROPERTY(EditDefaultsOnly, Category = "Character | Audio")
@@ -91,33 +99,25 @@ private:
 	UAnimMontage* MontageUnholster;
 
 	// Offset from the top of the character's capsule at which the first-person will be located.
-	UPROPERTY(EditDefaultsOnly, Category = "Character | View")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | View", meta = (AllowPrivateAccess = true))
 	FVector ViewOffset = FVector(0.0f, 0.0f, -35.0f);
 
-	// Type of Weapon used by this Character. Will determine what Weapon is spawned when starting to play this Character.
-	UPROPERTY(EditDefaultsOnly, Category = "Character | Settings")
-	TSubclassOf<AActor> ClassWeapon;
+	// Type of Weapon [Rifle] used by this Character. Will determine what Weapon is spawned when starting to play this Character.
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Weapons")
+	TSubclassOf<AWeaponBase> RifleWeapon;
 
+	// A map simulating inventory for storing weapons by condition
+	TMap<EStateWeapon, AWeaponBase*> InventoryWeapons;
+	// Current weapon on hands in Character
+	UPROPERTY()
+	AWeaponBase* WeaponOnHand;
+
+	// State move character
 	EStateMoveCharacter StateMoveCharacter = EStateMoveCharacter::None;
+	// State aim
 	EStateAim StateAim = EStateAim::None;
-
-	// Returns true if the player is currently holding the run key.
-	bool bHoldingKeyRun;
-
-	// Returns true if the player is currently holding the aim key.
-	bool bHoldingKeyAim;
-
-	// Returns true if the player is currently holding the fire key.
-	bool bHoldingKeyFire;
-
-	// Returns true if the player is currently holding the crouch key.
-	bool bHoldingKeyCrouch;
-
-	// Returns true if the player is currently holding the jump key.
-	bool bHoldingKeyJump;
-
-	// Returns true if the player is currently holding the tutorial key.
-	bool bHoldingKeyTutorial;
+	// State weapon
+	EStateWeapon StateWeapon = EStateWeapon::None;
 
 	// Returns true if this Character is currently in the middle of playing the Inspect Montage.
 	bool bPlayingMontageInspecting;
@@ -165,8 +165,24 @@ private:
 	// Crouching controlling
 	void ActionCrouch();
 
+	// Jumping controlling
+	void ActionJump();
+
+	// Running controlling
+	void ActionBoostRun();
+	void ActionStopRun();
+
+	// Aim controlling
+	void ActionAim();
+	void ActionHip();
+
 	// Get view location independent from Size capsule component
 	FORCEINLINE FVector GetViewLocation() const;
+
+	// Spawn All weapons in inventory
+	void SpawnAllWeapons();
+	// Setup new weapon on hand in character
+	void SetupWeaponOnHand(EStateWeapon WeaponState);
 
 	friend class AGameHUD;
 };
