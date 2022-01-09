@@ -12,8 +12,6 @@ DEFINE_LOG_CATEGORY_STATIC(LogPlayerCharacter, All, All);
 
 APlayerCharacter::APlayerCharacter()
 {
-	GetMesh()->DestroyComponent();
-
 	// Create spring arm component
 	this->SpringArm = CreateDefaultSubobject<USpringArmComponent>(FName("Spring arm"));
 	this->SpringArm->SetupAttachment(GetRootComponent());
@@ -22,9 +20,8 @@ APlayerCharacter::APlayerCharacter()
 	this->Camera = CreateDefaultSubobject<UCameraComponent>(FName("Camera"));
 	this->Camera->SetupAttachment(this->SpringArm);
 
-	// Create mesh base
-	this->MeshHand = CreateDefaultSubobject<USkeletalMeshComponent>(FName("Mesh Hand"));
-	this->MeshHand->SetupAttachment(this->Camera);
+	// Reattach mesh component
+	GetMesh()->SetupAttachment(this->Camera);
 
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
 }
@@ -33,7 +30,6 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	check(this->MeshHand);
 	check(this->Camera);
 	check(this->SpringArm);
 
@@ -42,8 +38,8 @@ void APlayerCharacter::BeginPlay()
 
 	// Begin setup weapons
 	this->SpawnAllWeapons();
-	this->StateWeapon = EStateWeapon::Rifle;
-	this->SetupWeaponOnHand(this->StateWeapon);
+	this->StateWeapon = EStateWeapon::Pistol;
+	this->ChangeOnNewWeaponOnHand(this->StateWeapon);
 
 	// Setup aiming
 	this->StateAim = EStateAim::Hip;
@@ -52,36 +48,78 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::SpawnAllWeapons()
 {
 	FTransform ActorTransform;
+	ActorTransform.SetLocation(GetActorLocation());
 	FActorSpawnParameters ActorSpawnParameters;
 
 	ActorSpawnParameters.Owner = this;
 	ActorSpawnParameters.Instigator = this;
 
-	AWeaponBase* TempRifleWeapon = GetWorld()->SpawnActor<AWeaponBase>(this->RifleWeapon, ActorTransform, ActorSpawnParameters);
-	TempRifleWeapon->SetHidden(true);
-	this->InventoryWeapons.Add(EStateWeapon::Rifle, TempRifleWeapon);
+	UE_LOG(LogPlayerCharacter, Display, TEXT("---|Spawned All Weapons|---"))
+
+	for (const auto Pair : this->SampleDataWeapons)
+	{
+		auto WeaponData = Pair.Value;
+		AWeaponBase* TempWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData.TypeWeapon, ActorTransform, ActorSpawnParameters);
+		if (TempWeapon)
+		{
+			TempWeapon->SetActorHiddenInGame(true);
+			this->InventoryWeapons.Add(Pair.Key, TempWeapon);
+			UE_LOG(LogPlayerCharacter, Display, TEXT("%s | is spawned"), *WeaponData.ToString());
+		}
+		else
+		{
+			UE_LOG(LogPlayerCharacter, Error, TEXT("%s | is doesn't spawning"), *WeaponData.ToString())
+		}
+	}
 }
 
-void APlayerCharacter::SetupWeaponOnHand(EStateWeapon WeaponState)
+void APlayerCharacter::SetupWeaponOnHand(EStateWeapon NewState)
 {
-	if (!this->InventoryWeapons.Contains(WeaponState))
+	if (this->StateWeapon == NewState)
 	{
-		UE_LOG(LogPlayerCharacter, Error, TEXT("Name player: %s | Type state: %s | doesn't contain in inventory"), *GetName(),
-			*UEnum::GetValueAsString(WeaponState));
+		UE_LOG(LogPlayerCharacter, Error, TEXT("Current and new state equal %s"), *UEnum::GetValueAsString(NewState));
 		return;
 	}
 
-	if (!this->WeaponOnHand)
+	if (!this->InventoryWeapons.Contains(NewState))
 	{
-		this->WeaponOnHand = this->InventoryWeapons[WeaponState];
-		this->WeaponOnHand->SetHidden(false);
-		const FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
-		this->WeaponOnHand->AttachToComponent(this->MeshHand, TransformRules, this->SocketWeapon);
+		UE_LOG(LogPlayerCharacter, Error, TEXT("Name player: %s | Type state: %s | doesn't contain in inventory"), *GetName(),
+			*UEnum::GetValueAsString(NewState));
+		return;
 	}
-	else
+
+	this->StateActionMontage = EStateActionMontage::Holstering;
+	PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageHolster);
+
+	FTimerHandle TimerHandle;
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &APlayerCharacter::ChangeOnNewWeaponOnHand, NewState);
+	GetWorldTimerManager().SetTimer(
+		TimerHandle, TimerDelegate, this->SampleDataWeapons[NewState].MontageHolster->SequenceLength / 4.0f, false);
+}
+
+void APlayerCharacter::ChangeOnNewWeaponOnHand(EStateWeapon NewState)
+{
+	if (this->WeaponOnHand)
 	{
-		// ... todo: animation + hidden in game
+		const FDetachmentTransformRules TransformRules(EDetachmentRule::KeepWorld, false);
+		this->WeaponOnHand->DetachFromActor(TransformRules);
+		this->WeaponOnHand->SetActorLocation(GetActorLocation());
+		this->WeaponOnHand->SetActorHiddenInGame(true);
 	}
+
+	GetMesh()->SetHiddenInGame(true);
+	this->WeaponOnHand = this->InventoryWeapons[NewState];
+	const FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
+	this->WeaponOnHand->AttachToComponent(GetMesh(), TransformRules, this->SocketWeapon);
+
+	GetMesh()->SetAnimClass(this->SampleDataWeapons[NewState].AnimHand);
+	PlayAnimMontage(this->SampleDataWeapons[NewState].MontageUnholster);
+
+	this->WeaponOnHand->SetActorHiddenInGame(false);
+	GetMesh()->SetHiddenInGame(false);
+	this->StateActionMontage = EStateActionMontage::None;
+	this->StateWeapon = NewState;
 }
 
 void APlayerCharacter::Tick(float DeltaSeconds)
@@ -126,6 +164,80 @@ void APlayerCharacter::UpdateRotCamera()
 	this->SpringArm->SetRelativeRotation(FRotator(Rot.Pitch, 0.0f, 0.0f));
 }
 
+FVector APlayerCharacter::GetViewLocation() const
+{
+	return (this->ViewOffset + FVector(0.0f, 0.0f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()));
+}
+
+void APlayerCharacter::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	if (this->SpringArm)
+	{
+		this->SpringArm->SetRelativeLocation(GetViewLocation());
+	}
+}
+
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (!PlayerInputComponent)
+	{
+		UE_LOG(LogPlayerCharacter, Error, TEXT("Name player: %s | Loading input component fail"), *GetName());
+		return;
+	}
+
+	PlayerInputComponent->BindAxis(FName("Vertical"), this, &APlayerCharacter::MoveVerticalInput);
+	PlayerInputComponent->BindAxis(FName("Horizontal"), this, &APlayerCharacter::MoveHorizontalInput);
+	PlayerInputComponent->BindAxis(FName("Pitch"), this, &APlayerCharacter::RotatePitchInput);
+	PlayerInputComponent->BindAxis(FName("Yaw"), this, &APlayerCharacter::RotateYawInput);
+	PlayerInputComponent->BindAction(FName("Crouch"), IE_Pressed, this, &APlayerCharacter::ActionCrouch);
+	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &APlayerCharacter::ActionJump);
+	PlayerInputComponent->BindAction(FName("Run"), IE_Pressed, this, &APlayerCharacter::ActionBoostRun);
+	PlayerInputComponent->BindAction(FName("Run"), IE_Released, this, &APlayerCharacter::ActionStopRun);
+	PlayerInputComponent->BindAction(FName("Aim"), IE_Pressed, this, &APlayerCharacter::ActionAim);
+	PlayerInputComponent->BindAction(FName("Aim"), IE_Released, this, &APlayerCharacter::ActionHip);
+	PlayerInputComponent->BindAction(FName("PistolInv"), IE_Pressed, this, &APlayerCharacter::ActionPistolInv);
+	PlayerInputComponent->BindAction(FName("RifleInv"), IE_Pressed, this, &APlayerCharacter::ActionRifleInv);
+}
+
+void APlayerCharacter::MoveHorizontalInput(float Value)
+{
+	this->Horizontal = Value;
+	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Walking ||
+		GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
+	{
+		AddMovementInput(GetActorRightVector(), Value);
+	}
+}
+
+void APlayerCharacter::MoveVerticalInput(float Value)
+{
+	this->Vertical = Value;
+	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Walking ||
+		GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
+	{
+		AddMovementInput(GetActorForwardVector(), Value);
+	}
+}
+
+void APlayerCharacter::RotateYawInput(float Value)
+{
+	this->Yaw = Value;
+	AddControllerYawInput(Value);
+}
+
+void APlayerCharacter::RotatePitchInput(float Value)
+{
+	this->Pitch = Value;
+	AddControllerPitchInput(Value);
+}
+
+/*
+ * Chapter action controlling
+ */
+
 void APlayerCharacter::ActionCrouch()
 {
 	if (!GetCharacterMovement()->IsWalking()) return;
@@ -139,6 +251,7 @@ void APlayerCharacter::ActionCrouch()
 		Crouch();
 	}
 }
+
 void APlayerCharacter::ActionJump()
 {
 	if (GetCharacterMovement()->IsCrouching())
@@ -182,70 +295,16 @@ void APlayerCharacter::ActionHip()
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
 }
 
-FVector APlayerCharacter::GetViewLocation() const
+void APlayerCharacter::ActionPistolInv()
 {
-	return (this->ViewOffset + FVector(0.0f, 0.0f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()));
+	if (this->StateActionMontage == EStateActionMontage::Holstering) return;
+
+	this->SetupWeaponOnHand(EStateWeapon::Pistol);
 }
 
-void APlayerCharacter::OnConstruction(const FTransform& Transform)
+void APlayerCharacter::ActionRifleInv()
 {
-	Super::OnConstruction(Transform);
-	if (this->SpringArm)
-	{
-		this->SpringArm->SetRelativeLocation(GetViewLocation());
-	}
-}
+	if (this->StateActionMontage == EStateActionMontage::Holstering) return;
 
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (!PlayerInputComponent)
-	{
-		UE_LOG(LogPlayerCharacter, Error, TEXT("Name player: %s | Loading input component fail"), *GetName());
-		return;
-	}
-
-	PlayerInputComponent->BindAxis(FName("Vertical"), this, &APlayerCharacter::MoveVerticalInput);
-	PlayerInputComponent->BindAxis(FName("Horizontal"), this, &APlayerCharacter::MoveHorizontalInput);
-	PlayerInputComponent->BindAxis(FName("Pitch"), this, &APlayerCharacter::RotatePitchInput);
-	PlayerInputComponent->BindAxis(FName("Yaw"), this, &APlayerCharacter::RotateYawInput);
-	PlayerInputComponent->BindAction(FName("Crouch"), IE_Pressed, this, &APlayerCharacter::ActionCrouch);
-	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &APlayerCharacter::ActionJump);
-	PlayerInputComponent->BindAction(FName("Run"), IE_Pressed, this, &APlayerCharacter::ActionBoostRun);
-	PlayerInputComponent->BindAction(FName("Run"), IE_Released, this, &APlayerCharacter::ActionStopRun);
-	PlayerInputComponent->BindAction(FName("Aim"), IE_Pressed, this, &APlayerCharacter::ActionAim);
-	PlayerInputComponent->BindAction(FName("Aim"), IE_Released, this, &APlayerCharacter::ActionHip);
-}
-
-void APlayerCharacter::MoveHorizontalInput(float Value)
-{
-	this->Horizontal = Value;
-	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Walking ||
-		GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
-	{
-		AddMovementInput(GetActorRightVector(), Value);
-	}
-}
-
-void APlayerCharacter::MoveVerticalInput(float Value)
-{
-	this->Vertical = Value;
-	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Walking ||
-		GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
-	{
-		AddMovementInput(GetActorForwardVector(), Value);
-	}
-}
-
-void APlayerCharacter::RotateYawInput(float Value)
-{
-	this->Yaw = Value;
-	AddControllerYawInput(Value);
-}
-
-void APlayerCharacter::RotatePitchInput(float Value)
-{
-	this->Pitch = Value;
-	AddControllerPitchInput(Value);
+	this->SetupWeaponOnHand(EStateWeapon::Rifle);
 }

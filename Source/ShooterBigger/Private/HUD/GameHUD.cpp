@@ -22,18 +22,21 @@ void AGameHUD::DrawHUD()
 #if !UE_BUILD_SHIPPING
 	if (this->GamePlayMode && IsEnableDebugInfo())
 	{
-		AddText(TEXT("---|Player Data|---"), FText::FromString(""));
+		AddText(TEXT("---|Player Data -> Controlling|---"), FText::FromString(""));
 		AddText(TEXT("Locale role:"), FText::FromString(UEnum::GetValueAsString(GetLocalRole())));
 		AddFloat(TEXT("Control Horizontal:"), this->PlayerCharacter->Horizontal);
 		AddFloat(TEXT("Control Vertical:"), this->PlayerCharacter->Vertical);
 		AddFloat(TEXT("Rotate Pitch:"), this->PlayerCharacter->Pitch);
 		AddFloat(TEXT("Rotate Yaw:"), this->PlayerCharacter->Yaw);
-		AddBool(TEXT("Is crouching:"), this->PlayerCharacter->GetCharacterMovement()->IsCrouching());
 		AddFloat(TEXT("Speed(cm/s):"), this->PlayerCharacter->GetVelocity().Size());
+		AddText(TEXT(""), FText::FromString(""));
+		AddText(TEXT("---|Player Data -> State|---"), FText::FromString(""));
+		AddBool(TEXT("Is crouching:"), this->PlayerCharacter->GetCharacterMovement()->IsCrouching());
 		AddText(TEXT("State EMovementMode:"),
 			FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->GetCharacterMovement()->MovementMode)));
 		AddText(TEXT("State move:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateMoveCharacter)));
 		AddText(TEXT("State aim:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAim)));
+		AddText(TEXT("State aim:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateActionMontage)));
 		AddText(TEXT("Inventory weapon:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateWeapon)));
 	}
 #endif

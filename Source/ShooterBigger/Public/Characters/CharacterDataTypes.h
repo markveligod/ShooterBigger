@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Weapons/WeaponBase.h"
 #include "CharacterDataTypes.generated.h"
 
 // The basic state move of the character
@@ -27,4 +28,59 @@ enum class EStateWeapon : uint8
 	None = 0,
 	Pistol,
 	Rifle
+};
+
+// State of continuous action animations montage
+UENUM()
+enum class EStateActionMontage : uint8
+{
+	None = 0,
+	Inspecting,
+	Reloading,
+	Holstering
+};
+
+// A structure for storing data about weapons in a pseudo inventory
+USTRUCT(BlueprintType)
+struct FWeaponData
+{
+	GENERATED_BODY()
+
+	// Hand animation for a specific type of weapon
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UAnimInstance> AnimHand;
+
+	// Type of Weapon used by this Character.
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AWeaponBase> TypeWeapon;
+
+	// Montage played when the character fires their weapon.
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* MontageFire;
+
+	// Montage played when the character inspects a weapon.
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* MontageInspect;
+
+	// Montage played when the character reloads.
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* MontageReload;
+
+	// Montage played when the character reloads while having no ammo in their weapon's magazine.
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* MontageReloadEmpty;
+
+	// Animation Montage played when trying to holster the character's weapon.
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* MontageHolster;
+
+	// Animation Montage played when the character is unholstering their weapon.
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* MontageUnholster;
+
+	// To string information about weapon
+	FORCEINLINE FString ToString() const
+	{
+		return FString("Anim Hand: " + this->AnimHand->GetName() + " | Type weapon: " + TypeWeapon->GetName());
+	}
 };
