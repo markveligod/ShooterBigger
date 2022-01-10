@@ -196,6 +196,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Aim"), IE_Released, this, &APlayerCharacter::ActionHip);
 	PlayerInputComponent->BindAction(FName("PistolInv"), IE_Pressed, this, &APlayerCharacter::ActionPistolInv);
 	PlayerInputComponent->BindAction(FName("RifleInv"), IE_Pressed, this, &APlayerCharacter::ActionRifleInv);
+	PlayerInputComponent->BindAction(FName("Inspect Weapon"), IE_Pressed, this, &APlayerCharacter::ActionInspectOn);
 }
 
 void APlayerCharacter::MoveHorizontalInput(float Value)
@@ -305,4 +306,20 @@ void APlayerCharacter::ActionRifleInv()
 	if (this->StateActionMontage != EStateActionMontage::None) return;
 
 	this->SetupWeaponOnHand(EStateWeapon::Rifle);
+}
+
+void APlayerCharacter::ActionInspectOn()
+{
+	if (this->StateActionMontage != EStateActionMontage::None) return;
+
+	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
+	this->StateActionMontage = EStateActionMontage::Inspecting;
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerCharacter::ActionInspectOff, RateTime, false);
+}
+
+void APlayerCharacter::ActionInspectOff()
+{
+	this->StateActionMontage = EStateActionMontage::None;
 }

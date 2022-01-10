@@ -173,6 +173,10 @@ private:
 	void ActionPistolInv();
 	void ActionRifleInv();
 
+	// Inspecting controlling
+	void ActionInspectOn();
+	void ActionInspectOff();
+
 #pragma endregion
 
 	// Get view location independent from Size capsule component
