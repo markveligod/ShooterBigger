@@ -89,35 +89,31 @@ void APlayerCharacter::SetupWeaponOnHand(EStateWeapon NewState)
 	}
 
 	this->StateActionMontage = EStateActionMontage::Holstering;
-	PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageHolster);
+	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageHolster);
 
 	FTimerHandle TimerHandle;
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindUObject(this, &APlayerCharacter::ChangeOnNewWeaponOnHand, NewState);
-	GetWorldTimerManager().SetTimer(
-		TimerHandle, TimerDelegate, this->SampleDataWeapons[NewState].MontageHolster->SequenceLength / 4.0f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, TimerDelegate, RateTime, false);
 }
 
 void APlayerCharacter::ChangeOnNewWeaponOnHand(EStateWeapon NewState)
 {
 	if (this->WeaponOnHand)
 	{
+		this->WeaponOnHand->SetActorHiddenInGame(true);
 		const FDetachmentTransformRules TransformRules(EDetachmentRule::KeepWorld, false);
 		this->WeaponOnHand->DetachFromActor(TransformRules);
 		this->WeaponOnHand->SetActorLocation(GetActorLocation());
-		this->WeaponOnHand->SetActorHiddenInGame(true);
 	}
 
-	GetMesh()->SetHiddenInGame(true);
 	this->WeaponOnHand = this->InventoryWeapons[NewState];
 	const FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
 	this->WeaponOnHand->AttachToComponent(GetMesh(), TransformRules, this->SocketWeapon);
 
-	GetMesh()->SetAnimClass(this->SampleDataWeapons[NewState].AnimHand);
 	PlayAnimMontage(this->SampleDataWeapons[NewState].MontageUnholster);
 
 	this->WeaponOnHand->SetActorHiddenInGame(false);
-	GetMesh()->SetHiddenInGame(false);
 	this->StateActionMontage = EStateActionMontage::None;
 	this->StateWeapon = NewState;
 }
@@ -285,6 +281,8 @@ void APlayerCharacter::ActionStopRun()
 
 void APlayerCharacter::ActionAim()
 {
+	if (this->StateActionMontage != EStateActionMontage::None) return;
+
 	this->StateAim = EStateAim::Aiming;
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedAiming;
 }
@@ -297,14 +295,14 @@ void APlayerCharacter::ActionHip()
 
 void APlayerCharacter::ActionPistolInv()
 {
-	if (this->StateActionMontage == EStateActionMontage::Holstering) return;
+	if (this->StateActionMontage != EStateActionMontage::None) return;
 
 	this->SetupWeaponOnHand(EStateWeapon::Pistol);
 }
 
 void APlayerCharacter::ActionRifleInv()
 {
-	if (this->StateActionMontage == EStateActionMontage::Holstering) return;
+	if (this->StateActionMontage != EStateActionMontage::None) return;
 
 	this->SetupWeaponOnHand(EStateWeapon::Rifle);
 }

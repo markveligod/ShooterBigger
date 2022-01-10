@@ -26,12 +26,18 @@ public:
 	// Getting current state move character
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
 	FORCEINLINE EStateMoveCharacter GetStateMoveCharacter() const { return this->StateMoveCharacter; }
+
 	// Getting current state aim of player character
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
 	FORCEINLINE EStateAim GetStateAim() const { return this->StateAim; }
+
 	// Getting current state weapon of player character
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
 	FORCEINLINE EStateWeapon GetStateWeapon() const { return (this->StateWeapon); }
+
+	// Getting current state montage of begin animation
+	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
+	FORCEINLINE EStateActionMontage GetStateActionMontage() const { return this->StateActionMontage; }
 #pragma endregion
 
 protected:

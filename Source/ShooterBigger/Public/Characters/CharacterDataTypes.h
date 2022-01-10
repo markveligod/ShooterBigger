@@ -46,10 +46,6 @@ struct FWeaponData
 {
 	GENERATED_BODY()
 
-	// Hand animation for a specific type of weapon
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UAnimInstance> AnimHand;
-
 	// Type of Weapon used by this Character.
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AWeaponBase> TypeWeapon;
@@ -81,6 +77,9 @@ struct FWeaponData
 	// To string information about weapon
 	FORCEINLINE FString ToString() const
 	{
-		return FString("Anim Hand: " + this->AnimHand->GetName() + " | Type weapon: " + TypeWeapon->GetName());
+		return FString("Type weapon: " + TypeWeapon->GetName() + " | Montage Fire: " + MontageFire->GetName() +
+					   " | Montage Inspect: " + MontageInspect->GetName() + " | Montage Reload: " + MontageReload->GetName() +
+					   " | Montage Reload Empty: " + MontageReloadEmpty->GetName() + " | Montage Holster: " + MontageHolster->GetName() +
+					   " | Montage Unholster: " + MontageUnholster->GetName());
 	}
 };
