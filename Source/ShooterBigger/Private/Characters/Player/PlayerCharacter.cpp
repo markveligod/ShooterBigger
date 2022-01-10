@@ -88,7 +88,7 @@ void APlayerCharacter::SetupWeaponOnHand(EStateWeapon NewState)
 		return;
 	}
 
-	this->StateActionMontage = EStateActionMontage::Holstering;
+	this->StateAction = EStateAction::Holstering;
 	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageHolster);
 
 	FTimerHandle TimerHandle;
@@ -114,7 +114,7 @@ void APlayerCharacter::ChangeOnNewWeaponOnHand(EStateWeapon NewState)
 	PlayAnimMontage(this->SampleDataWeapons[NewState].MontageUnholster);
 
 	this->WeaponOnHand->SetActorHiddenInGame(false);
-	this->StateActionMontage = EStateActionMontage::None;
+	this->StateAction = EStateAction::None;
 	this->StateWeapon = NewState;
 }
 
@@ -197,6 +197,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("PistolInv"), IE_Pressed, this, &APlayerCharacter::ActionPistolInv);
 	PlayerInputComponent->BindAction(FName("RifleInv"), IE_Pressed, this, &APlayerCharacter::ActionRifleInv);
 	PlayerInputComponent->BindAction(FName("Inspect Weapon"), IE_Pressed, this, &APlayerCharacter::ActionInspectOn);
+	PlayerInputComponent->BindAction(FName("Fire"), IE_Pressed, this, &APlayerCharacter::ActionFireOn);
+	PlayerInputComponent->BindAction(FName("Fire"), IE_Released, this, &APlayerCharacter::ActionFireOff);
 }
 
 void APlayerCharacter::MoveHorizontalInput(float Value)
@@ -282,7 +284,7 @@ void APlayerCharacter::ActionStopRun()
 
 void APlayerCharacter::ActionAim()
 {
-	if (this->StateActionMontage != EStateActionMontage::None) return;
+	if (this->StateAction != EStateAction::None) return;
 
 	this->StateAim = EStateAim::Aiming;
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedAiming;
@@ -296,24 +298,24 @@ void APlayerCharacter::ActionHip()
 
 void APlayerCharacter::ActionPistolInv()
 {
-	if (this->StateActionMontage != EStateActionMontage::None) return;
+	if (this->StateAction != EStateAction::None) return;
 
 	this->SetupWeaponOnHand(EStateWeapon::Pistol);
 }
 
 void APlayerCharacter::ActionRifleInv()
 {
-	if (this->StateActionMontage != EStateActionMontage::None) return;
+	if (this->StateAction != EStateAction::None) return;
 
 	this->SetupWeaponOnHand(EStateWeapon::Rifle);
 }
 
 void APlayerCharacter::ActionInspectOn()
 {
-	if (this->StateActionMontage != EStateActionMontage::None) return;
+	if (this->StateAction != EStateAction::None) return;
 
 	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
-	this->StateActionMontage = EStateActionMontage::Inspecting;
+	this->StateAction = EStateAction::Inspecting;
 
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerCharacter::ActionInspectOff, RateTime, false);
@@ -321,5 +323,31 @@ void APlayerCharacter::ActionInspectOn()
 
 void APlayerCharacter::ActionInspectOff()
 {
-	this->StateActionMontage = EStateActionMontage::None;
+	this->StateAction = EStateAction::None;
+}
+
+void APlayerCharacter::ActionFireOn()
+{
+	if (this->StateAction != EStateAction::None) return;
+
+	this->StateAction = EStateAction::Fire;
+	this->MakeShot();
+
+	if (this->WeaponOnHand->IsWeaponAutomatic())
+	{
+		GetWorldTimerManager().SetTimer(
+			this->TimerHandleFire, this, &APlayerCharacter::MakeShot, 60 / this->WeaponOnHand->GetRateOfFire(), true);
+	}
+}
+
+void APlayerCharacter::MakeShot()
+{
+	PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageFire);
+	this->WeaponOnHand->MakeShot();
+}
+
+void APlayerCharacter::ActionFireOff()
+{
+	GetWorldTimerManager().ClearTimer(this->TimerHandleFire);
+	this->StateAction = EStateAction::None;
 }

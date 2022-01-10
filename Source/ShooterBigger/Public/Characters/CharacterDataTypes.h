@@ -32,12 +32,13 @@ enum class EStateWeapon : uint8
 
 // State of continuous action animations montage
 UENUM()
-enum class EStateActionMontage : uint8
+enum class EStateAction : uint8
 {
 	None = 0,
 	Inspecting,
 	Reloading,
-	Holstering
+	Holstering,
+	Fire
 };
 
 // A structure for storing data about weapons in a pseudo inventory

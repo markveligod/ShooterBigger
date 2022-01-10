@@ -1,6 +1,8 @@
 
 #include "Weapons/WeaponBase.h"
 
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
@@ -20,8 +22,22 @@ AWeaponBase::AWeaponBase()
 	this->MeshMagazine->SetupAttachment(this->MeshWeapon, FName("SOCKET_Magazine"));
 }
 
+void AWeaponBase::MakeShot()
+{
+	// Play animation weapon
+	this->MeshWeapon->PlayAnimation(this->MontageFire, false);
+
+	// Possible reduction of Ammunition
+	this->AmmunitionCurrent = FMath::Clamp(this->AmmunitionCurrent - 1, 0, this->AmmunitionMax);
+
+	// spawn emitter effect
+	UGameplayStatics::SpawnEmitterAttached(this->EmitterEffect, this->MeshWeapon, this->SocketMuzzle);
+}
+
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	this->AmmunitionCurrent = this->AmmunitionMax;
 }

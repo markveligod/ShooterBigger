@@ -36,7 +36,7 @@ void AGameHUD::DrawHUD()
 			FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->GetCharacterMovement()->MovementMode)));
 		AddText(TEXT("State move:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateMoveCharacter)));
 		AddText(TEXT("State aim:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAim)));
-		AddText(TEXT("State aim:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateActionMontage)));
+		AddText(TEXT("State action:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAction)));
 		AddText(TEXT("Inventory weapon:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateWeapon)));
 	}
 #endif

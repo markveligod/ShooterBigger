@@ -37,7 +37,7 @@ public:
 
 	// Getting current state montage of begin animation
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
-	FORCEINLINE EStateActionMontage GetStateActionMontage() const { return this->StateActionMontage; }
+	FORCEINLINE EStateAction GetStateActionMontage() const { return this->StateAction; }
 #pragma endregion
 
 protected:
@@ -116,7 +116,7 @@ private:
 	EStateWeapon StateWeapon = EStateWeapon::None;
 
 	// State action montage
-	EStateActionMontage StateActionMontage;
+	EStateAction StateAction;
 #pragma endregion
 
 	// Returns the time at which the Character last fired a Weapon.
@@ -130,11 +130,8 @@ private:
 	float Horizontal;
 	float Vertical;
 
-	// Is the Weapon's ammunition empty?
-	bool bIsWeaponEmpty;
-
-	// Weapon Rate Of Fire.
-	float RateOfFire;
+	// Timer handle for fire automatic
+	FTimerHandle TimerHandleFire;
 
 	// Function for Horizontal and Vertical input
 	void MoveHorizontalInput(float Value);
@@ -176,6 +173,11 @@ private:
 	// Inspecting controlling
 	void ActionInspectOn();
 	void ActionInspectOff();
+
+	// Fire controlling
+	void ActionFireOn();
+	void ActionFireOff();
+	void MakeShot();
 
 #pragma endregion
 

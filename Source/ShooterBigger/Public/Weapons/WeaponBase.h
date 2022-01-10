@@ -47,6 +47,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
 	FORCEINLINE bool IsWeaponAutomatic() const { return this->bAutomatic; }
 
+	// Shooting
+	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Action")
+	void MakeShot();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -69,12 +73,12 @@ private:
 	bool bAutomatic;
 
 	// Amount of rounds per minute that the Weapon can fire.
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings", meta = (EditCondition = "bAutomatic"))
 	float RateOfFire;
 
 	// Maximum ammunition that the Weapon's magazine can hold.
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
-	uint16 AmmunitionMax;
+	int32 AmmunitionMax;
 
 	// Firing Montage.
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animation")
@@ -100,9 +104,16 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Display")
 	UTexture2D* TextureWeaponIronsights;
 
+	// Spawn effect Emitter for weapons
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX")
+	UParticleSystem* EmitterEffect;
+	// Socket muzzle for spawn effect Emitter of weapon
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX")
+	FName SocketMuzzle = "SOCKET_Muzzle";
+
 	// Result from hitting something when firing.
 	FHitResult HitResult;
 
 	// Current amount of bullets in the magazine.
-	uint16 AmmunitionCurrent;
+	int32 AmmunitionCurrent;
 };
