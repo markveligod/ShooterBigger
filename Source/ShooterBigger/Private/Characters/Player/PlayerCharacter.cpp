@@ -145,11 +145,14 @@ void APlayerCharacter::CheckStateMoveCharacter()
 		this->StateMoveCharacter = EStateMoveCharacter::Running;
 	}
 }
+
 void APlayerCharacter::UpdateLocCamera(float DeltaTime)
 {
-	const FVector CurrLocRel = this->SpringArm->GetRelativeLocation();
-	const FVector NewLocRel = UKismetMathLibrary::VInterpTo(CurrLocRel, GetViewLocation(), DeltaTime, 15.0f);
-	this->SpringArm->SetRelativeLocation(NewLocRel);
+	const FVector CurrLocRelSA = this->SpringArm->GetRelativeLocation();
+	const FVector NewLocRelSA = UKismetMathLibrary::VInterpTo(CurrLocRelSA, GetViewLocation(), DeltaTime, 10.0f);
+	this->SpringArm->SetRelativeLocation(NewLocRelSA);
+
+	this->GetMesh()->SetRelativeLocation(FVector::ZeroVector);
 }
 
 void APlayerCharacter::UpdateRotCamera()

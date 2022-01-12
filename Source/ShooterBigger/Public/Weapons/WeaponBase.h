@@ -15,6 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	AWeaponBase();
 
+#pragma region GetData
 	// Getting TextureWeaponBody
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Texture")
 	FORCEINLINE UTexture2D* GetTextureWeaponBody() const { return this->TextureWeaponBody; }
@@ -46,6 +47,7 @@ public:
 	// Is Automatic?
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
 	FORCEINLINE bool IsWeaponAutomatic() const { return this->bAutomatic; }
+#pragma endregion
 
 	// Shooting
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Action")
@@ -56,6 +58,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+#pragma region Components
 	// Base mesh weapon
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	USkeletalMeshComponent* MeshWeapon;
@@ -68,6 +71,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UStaticMeshComponent* MeshMagazine;
 
+#pragma endregion
+
+#pragma region WeaponSettings
 	// Should this Weapon be automatic?
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
 	bool bAutomatic;
@@ -79,6 +85,18 @@ private:
 	// Maximum ammunition that the Weapon's magazine can hold.
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
 	int32 AmmunitionMax;
+
+	// Distance of the shot
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings", meta = (Units = "cm"))
+	float DistanceShot = 10000;
+
+	// The amount of damage dealt
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
+	float AmountDamage = 1;
+
+	// Damage type weapon
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
+	FPointDamageEvent PointDamageInfo;
 
 	// Firing Montage.
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animation")
@@ -107,9 +125,46 @@ private:
 	// Spawn effect Emitter for weapons
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX")
 	UParticleSystem* EmitterEffect;
+
 	// Socket muzzle for spawn effect Emitter of weapon
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX")
 	FName SocketMuzzle = "SOCKET_Muzzle";
+
+	// Correction for the angle of rotation if necessary
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX", meta = (Units = "deg"))
+	FRotator DeltaMuzzleRot = FRotator::ZeroRotator;
+#pragma endregion
+
+#pragma region DebugTraceWeapon
+	// [Debug] Enable debug shot ?
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Debug")
+	bool bEnableDebugShot = true;
+
+	// [Debug] color trace
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Debug", meta = (EditCondition = "bEnableDebugShot"))
+	FColor ColorTrace = FColor::Green;
+
+	// [Debug] color hit point
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Debug", meta = (EditCondition = "bEnableDebugShot"))
+	FColor ColorHit = FColor::Red;
+
+	// [Debug] Line thickness
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Debug", meta = (EditCondition = "bEnableDebugShot"))
+	float Thickness = 2.0f;
+
+	// [Debug] Draw time line
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Debug", meta = (EditCondition = "bEnableDebugShot"))
+	float DrawTime = 5.0f;
+
+	// [Debug] Line radius Hit
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Debug", meta = (EditCondition = "bEnableDebugShot"))
+	float RadiusHit = 12.0f;
+
+	// [Debug] Segments hit
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Debug", meta = (EditCondition = "bEnableDebugShot"))
+	int32 SegmentsHit = 8;
+
+#pragma endregion
 
 	// Result from hitting something when firing.
 	FHitResult HitResult;
