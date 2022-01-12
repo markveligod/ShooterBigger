@@ -179,6 +179,10 @@ private:
 	void ActionFireOff();
 	void MakeShot();
 
+	// Reload controlling
+	void ActionReload();
+	void ResetActionReload();
+
 #pragma endregion
 
 	// Get view location independent from Size capsule component

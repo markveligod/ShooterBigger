@@ -30,7 +30,7 @@ void AWeaponBase::MakeShot()
 	this->MeshWeapon->PlayAnimation(this->MontageFire, false);
 
 	// Possible reduction of Ammunition
-	this->AmmunitionCurrent = FMath::Clamp(this->AmmunitionCurrent - 1, 0, this->AmmunitionMax);
+	this->AmmoInClip = FMath::Clamp(this->AmmoInClip - 1, 0, this->AmmoMaxInClip);
 
 	// spawn emitter effect
 	UGameplayStatics::SpawnEmitterAttached(
@@ -43,12 +43,22 @@ void AWeaponBase::MakeShot()
 	}
 }
 
+void AWeaponBase::ReloadWeapon()
+{
+	UAnimMontage* PlayMontageReload = (this->IsEmptyAmmoInClip()) ? this->MontageReloadEmpty : this->MontageReload;
+	this->MeshWeapon->PlayAnimation(PlayMontageReload, false);
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AWeaponBase::RecalculationDecreaseAmmo, PlayMontageReload->SequenceLength, false);
+}
+
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	this->AmmunitionCurrent = this->AmmunitionMax;
+	this->AmmoInClip = this->AmmoMaxInClip;
+	this->RemainAmmo = this->AmmoMax;
 }
 
 bool AWeaponBase::TryMakeHit()
@@ -83,4 +93,19 @@ bool AWeaponBase::TryMakeHit()
 		return (true);
 	}
 	return (false);
+}
+
+void AWeaponBase::RecalculationDecreaseAmmo()
+{
+	const int32 RequestAmmo = this->AmmoMaxInClip - this->AmmoInClip;
+	if (RequestAmmo <= this->RemainAmmo)
+	{
+		this->RemainAmmo = this->RemainAmmo - RequestAmmo;
+		this->AmmoInClip = this->AmmoMaxInClip;
+	}
+	else
+	{
+		this->AmmoInClip += this->RemainAmmo;
+		this->RemainAmmo = 0;
+	}
 }

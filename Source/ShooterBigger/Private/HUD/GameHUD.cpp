@@ -46,8 +46,8 @@ void AGameHUD::DrawHUD()
 		{
 			AddFloat(TEXT("Rate on Fire:"), this->PlayerCharacter->WeaponOnHand->RateOfFire);
 		}
-		AddText(TEXT("Ammunition:"), FText::FromString(FString::FromInt(this->PlayerCharacter->WeaponOnHand->AmmunitionCurrent) + "/" +
-													   FString::FromInt(this->PlayerCharacter->WeaponOnHand->AmmunitionMax)));
+		AddText(TEXT("Ammunition:"), FText::FromString(FString::FromInt(this->PlayerCharacter->WeaponOnHand->AmmoInClip) + "/" +
+													   FString::FromInt(this->PlayerCharacter->WeaponOnHand->RemainAmmo)));
 		AddFloat(TEXT("Distance shot:"), this->PlayerCharacter->WeaponOnHand->DistanceShot);
 		AddFloat(TEXT("Amount damage:"), this->PlayerCharacter->WeaponOnHand->AmountDamage);
 	}

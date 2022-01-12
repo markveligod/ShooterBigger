@@ -32,26 +32,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
 	FORCEINLINE float GetRateOfFire() const { return this->RateOfFire; }
 
-	// Is empty ammo in climb ?
+	// Is empty ammo in clip ?
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
-	FORCEINLINE bool IsEmptyAmmoClimb() const { return this->AmmunitionCurrent == 0; }
+	FORCEINLINE bool IsEmptyAmmoInClip() const { return this->AmmoInClip == 0; }
 
 	// Get Ammunition Max
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
-	FORCEINLINE int32 GetAmmunitionMax() const { return this->AmmunitionMax; }
+	FORCEINLINE int32 GetAmmoMaxInClip() const { return this->AmmoMaxInClip; }
 
 	// Get Ammunition Current
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
-	FORCEINLINE int32 GetAmmunitionCurrent() const { return this->AmmunitionCurrent; }
+	FORCEINLINE int32 GetAmmunitionCurrent() const { return this->AmmoInClip; }
 
 	// Is Automatic?
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
 	FORCEINLINE bool IsWeaponAutomatic() const { return this->bAutomatic; }
 #pragma endregion
 
-	// Shooting
+	// Shooting from weapon
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Action")
 	void MakeShot();
+
+	// Reload weapon
+	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Action")
+	void ReloadWeapon();
 
 protected:
 	// Called when the game starts or when spawned
@@ -82,9 +86,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings", meta = (EditCondition = "bAutomatic"))
 	float RateOfFire;
 
-	// Maximum ammunition that the Weapon's magazine can hold.
+	// Maximum ammunition that the Weapon's clip can hold.
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
-	int32 AmmunitionMax;
+	int32 AmmoMaxInClip;
+
+	// The maximum number of ammo that can be in the pouch
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
+	int32 AmmoMax = 220;
 
 	// Distance of the shot
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings", meta = (Units = "cm"))
@@ -169,14 +177,20 @@ private:
 	// Result from hitting something when firing.
 	FHitResult HitResult;
 
-	// Current amount of bullets in the magazine.
-	int32 AmmunitionCurrent;
+	// Current amount of ammo in the Clip.
+	int32 AmmoInClip;
+
+	// The remain of the ammo in the pouch
+	int32 RemainAmmo;
 
 	/*
 	 * Attempt to cause damage to any visible object
 	 * @return The status of the hit made
 	 */
 	bool TryMakeHit();
+
+	// Recalculation decrease of the stock of ammo
+	void RecalculationDecreaseAmmo();
 
 	friend class AGameHUD;
 };

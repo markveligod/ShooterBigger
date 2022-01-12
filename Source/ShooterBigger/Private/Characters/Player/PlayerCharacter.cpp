@@ -202,6 +202,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Inspect Weapon"), IE_Pressed, this, &APlayerCharacter::ActionInspectOn);
 	PlayerInputComponent->BindAction(FName("Fire"), IE_Pressed, this, &APlayerCharacter::ActionFireOn);
 	PlayerInputComponent->BindAction(FName("Fire"), IE_Released, this, &APlayerCharacter::ActionFireOff);
+	PlayerInputComponent->BindAction(FName("Reload"), IE_Pressed, this, &APlayerCharacter::ActionReload);
 }
 
 void APlayerCharacter::MoveHorizontalInput(float Value)
@@ -278,6 +279,7 @@ void APlayerCharacter::ActionBoostRun()
 		UnCrouch();
 	}
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedRunning;
+	this->ActionFireOff();
 }
 
 void APlayerCharacter::ActionStopRun()
@@ -334,8 +336,8 @@ void APlayerCharacter::ActionFireOn()
 	if (this->StateAction != EStateAction::None) return;
 
 	this->StateAction = EStateAction::Fire;
-	this->MakeShot();
 
+	this->MakeShot();
 	if (this->WeaponOnHand->IsWeaponAutomatic())
 	{
 		GetWorldTimerManager().SetTimer(
@@ -345,6 +347,14 @@ void APlayerCharacter::ActionFireOn()
 
 void APlayerCharacter::MakeShot()
 {
+	if (this->StateMoveCharacter == EStateMoveCharacter::Running) return;
+
+	if (this->WeaponOnHand->IsEmptyAmmoInClip())
+	{
+		// todo: anim or sound empty clip
+		return;
+	}
+
 	PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageFire);
 	this->WeaponOnHand->MakeShot();
 }
@@ -352,5 +362,27 @@ void APlayerCharacter::MakeShot()
 void APlayerCharacter::ActionFireOff()
 {
 	GetWorldTimerManager().ClearTimer(this->TimerHandleFire);
+	this->StateAction = EStateAction::None;
+}
+
+void APlayerCharacter::ActionReload()
+{
+	if (this->StateAction != EStateAction::None) return;
+
+	this->StateAction = EStateAction::Reloading;
+
+	UAnimMontage* PlayMontageReload = (this->WeaponOnHand->IsEmptyAmmoInClip())
+										  ? this->SampleDataWeapons[this->StateWeapon].MontageReloadEmpty
+										  : this->SampleDataWeapons[this->StateWeapon].MontageReload;
+	const float RateTime = PlayAnimMontage(PlayMontageReload);
+
+	this->WeaponOnHand->ReloadWeapon();
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerCharacter::ResetActionReload, RateTime, false);
+}
+
+void APlayerCharacter::ResetActionReload()
+{
 	this->StateAction = EStateAction::None;
 }
