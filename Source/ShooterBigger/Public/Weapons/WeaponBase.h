@@ -88,11 +88,11 @@ private:
 
 	// Distance of the shot
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings", meta = (Units = "cm"))
-	float DistanceShot = 10000;
+	float DistanceShot = 10000.0f;
 
 	// The amount of damage dealt
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
-	float AmountDamage = 1;
+	float AmountDamage = 1.0f;
 
 	// Damage type weapon
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
@@ -171,4 +171,12 @@ private:
 
 	// Current amount of bullets in the magazine.
 	int32 AmmunitionCurrent;
+
+	/*
+	 * Attempt to cause damage to any visible object
+	 * @return The status of the hit made
+	 */
+	bool TryMakeHit();
+
+	friend class AGameHUD;
 };

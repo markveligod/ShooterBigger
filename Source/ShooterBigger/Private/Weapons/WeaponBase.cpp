@@ -37,9 +37,25 @@ void AWeaponBase::MakeShot()
 		this->EmitterEffect, this->MeshWeapon, this->SocketMuzzle, FVector(ForceInit), this->DeltaMuzzleRot);
 
 	// Make hit
-	FVector StartLine = this->MeshWeapon->GetSocketLocation(this->SocketMuzzle);
+	if (this->TryMakeHit())
+	{
+		// todo: Add decal and impact effect from normal object
+	}
+}
+
+// Called when the game starts or when spawned
+void AWeaponBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	this->AmmunitionCurrent = this->AmmunitionMax;
+}
+
+bool AWeaponBase::TryMakeHit()
+{
+	const FVector StartLine = this->MeshWeapon->GetSocketLocation(this->SocketMuzzle);
 	const APlayerCameraManager* Camera = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
-	FVector EndLine = Camera->GetCameraLocation() + Camera->GetCameraRotation().Vector() * this->DistanceShot;
+	const FVector EndLine = Camera->GetCameraLocation() + Camera->GetCameraRotation().Vector() * this->DistanceShot;
 
 	FCollisionQueryParams CollisionQueryParams;
 	CollisionQueryParams.AddIgnoredActor(this);
@@ -63,13 +79,8 @@ void AWeaponBase::MakeShot()
 			DrawDebugSphere(GetWorld(), this->HitResult.ImpactPoint, this->RadiusHit, this->SegmentsHit, this->ColorHit, false,
 				this->DrawTime, 0, this->Thickness);
 		}
+
+		return (true);
 	}
-}
-
-// Called when the game starts or when spawned
-void AWeaponBase::BeginPlay()
-{
-	Super::BeginPlay();
-
-	this->AmmunitionCurrent = this->AmmunitionMax;
+	return (false);
 }

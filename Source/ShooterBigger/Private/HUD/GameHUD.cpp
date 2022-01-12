@@ -23,12 +23,12 @@ void AGameHUD::DrawHUD()
 	if (this->GamePlayMode && IsEnableDebugInfo())
 	{
 		AddText(TEXT("---|Player Data -> Controlling|---"), FText::FromString(""));
-		AddText(TEXT("Locale role:"), FText::FromString(UEnum::GetValueAsString(GetLocalRole())));
 		AddFloat(TEXT("Control Horizontal:"), this->PlayerCharacter->Horizontal);
 		AddFloat(TEXT("Control Vertical:"), this->PlayerCharacter->Vertical);
 		AddFloat(TEXT("Rotate Pitch:"), this->PlayerCharacter->Pitch);
 		AddFloat(TEXT("Rotate Yaw:"), this->PlayerCharacter->Yaw);
 		AddFloat(TEXT("Speed(cm/s):"), this->PlayerCharacter->GetVelocity().Size());
+
 		AddText(TEXT(""), FText::FromString(""));
 		AddText(TEXT("---|Player Data -> State|---"), FText::FromString(""));
 		AddBool(TEXT("Is crouching:"), this->PlayerCharacter->GetCharacterMovement()->IsCrouching());
@@ -38,6 +38,18 @@ void AGameHUD::DrawHUD()
 		AddText(TEXT("State aim:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAim)));
 		AddText(TEXT("State action:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAction)));
 		AddText(TEXT("Inventory weapon:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateWeapon)));
+
+		AddText(TEXT(""), FText::FromString(""));
+		AddText(TEXT("---|Player Data -> Weapon|---"), FText::FromString(""));
+		AddBool(TEXT("Is automatic:"), this->PlayerCharacter->WeaponOnHand->bAutomatic);
+		if (this->PlayerCharacter->WeaponOnHand->bAutomatic)
+		{
+			AddFloat(TEXT("Rate on Fire:"), this->PlayerCharacter->WeaponOnHand->RateOfFire);
+		}
+		AddText(TEXT("Ammunition:"), FText::FromString(FString::FromInt(this->PlayerCharacter->WeaponOnHand->AmmunitionCurrent) + "/" +
+													   FString::FromInt(this->PlayerCharacter->WeaponOnHand->AmmunitionMax)));
+		AddFloat(TEXT("Distance shot:"), this->PlayerCharacter->WeaponOnHand->DistanceShot);
+		AddFloat(TEXT("Amount damage:"), this->PlayerCharacter->WeaponOnHand->AmountDamage);
 	}
 #endif
 }
