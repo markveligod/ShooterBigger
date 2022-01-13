@@ -104,7 +104,7 @@ private:
 
 	// Damage type weapon
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
-	FPointDamageEvent PointDamageInfo;
+	TSubclassOf<UDamageType> DamageType;
 
 	// Firing Montage.
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Animation")
@@ -131,16 +131,33 @@ private:
 	UTexture2D* TextureWeaponIronsights;
 
 	// Spawn effect Emitter for weapons
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX")
-	UParticleSystem* EmitterEffect;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX | Shot")
+	UParticleSystem* EmitterShotEffect;
 
 	// Socket muzzle for spawn effect Emitter of weapon
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX | Shot")
 	FName SocketMuzzle = "SOCKET_Muzzle";
 
 	// Correction for the angle of rotation if necessary
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX", meta = (Units = "deg"))
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX | Shot")
 	FRotator DeltaMuzzleRot = FRotator::ZeroRotator;
+
+	// Impact hit effect
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX | Hit")
+	UParticleSystem* ImpactHitEffect;
+
+	// Drawing a hole from a bullet hit
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Decal")
+	UMaterialInterface* DecalBullet;
+
+	// Bullet hole size
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Decal")
+	FFloatInterval DecalBulletSize = {4.0f, 6.0f};
+
+	// The lifetime of a bullet hole on stage
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Decal")
+	float LifeTimeBulletDecal = 5.0f;
+
 #pragma endregion
 
 #pragma region DebugTraceWeapon
@@ -173,6 +190,9 @@ private:
 	int32 SegmentsHit = 8;
 
 #pragma endregion
+
+	// Event info about point damage
+	FPointDamageEvent PointDamageInfo;
 
 	// Result from hitting something when firing.
 	FHitResult HitResult;

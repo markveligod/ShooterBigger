@@ -22,34 +22,41 @@ void AGameHUD::DrawHUD()
 #if !UE_BUILD_SHIPPING
 	if (this->GamePlayMode && IsEnableDebugInfo())
 	{
-		AddText(TEXT("---|Player Data -> Controlling|---"), FText::FromString(""));
-		AddFloat(TEXT("Control Horizontal:"), this->PlayerCharacter->Horizontal);
-		AddFloat(TEXT("Control Vertical:"), this->PlayerCharacter->Vertical);
-		AddFloat(TEXT("Rotate Pitch:"), this->PlayerCharacter->Pitch);
-		AddFloat(TEXT("Rotate Yaw:"), this->PlayerCharacter->Yaw);
-		AddFloat(TEXT("Speed(cm/s):"), this->PlayerCharacter->GetVelocity().Size());
-
-		AddText(TEXT(""), FText::FromString(""));
-		AddText(TEXT("---|Player Data -> State|---"), FText::FromString(""));
-		AddBool(TEXT("Is crouching:"), this->PlayerCharacter->GetCharacterMovement()->IsCrouching());
-		AddText(TEXT("State EMovementMode:"),
-			FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->GetCharacterMovement()->MovementMode)));
-		AddText(TEXT("State move:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateMoveCharacter)));
-		AddText(TEXT("State aim:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAim)));
-		AddText(TEXT("State action:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAction)));
-		AddText(TEXT("Inventory weapon:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateWeapon)));
-
-		AddText(TEXT(""), FText::FromString(""));
-		AddText(TEXT("---|Player Data -> Weapon|---"), FText::FromString(""));
-		AddBool(TEXT("Is automatic:"), this->PlayerCharacter->WeaponOnHand->bAutomatic);
-		if (this->PlayerCharacter->WeaponOnHand->bAutomatic)
+		if (this->bEnableControl)
 		{
-			AddFloat(TEXT("Rate on Fire:"), this->PlayerCharacter->WeaponOnHand->RateOfFire);
+			AddText(TEXT("---|Player Data -> Control|---"), FText::FromString(""));
+			AddFloat(TEXT("Control Horizontal:"), this->PlayerCharacter->Horizontal);
+			AddFloat(TEXT("Control Vertical:"), this->PlayerCharacter->Vertical);
+			AddFloat(TEXT("Rotate Pitch:"), this->PlayerCharacter->Pitch);
+			AddFloat(TEXT("Rotate Yaw:"), this->PlayerCharacter->Yaw);
+			AddFloat(TEXT("Speed(cm/s):"), this->PlayerCharacter->GetVelocity().Size());
 		}
-		AddText(TEXT("Ammunition:"), FText::FromString(FString::FromInt(this->PlayerCharacter->WeaponOnHand->AmmoInClip) + "/" +
-													   FString::FromInt(this->PlayerCharacter->WeaponOnHand->RemainAmmo)));
-		AddFloat(TEXT("Distance shot:"), this->PlayerCharacter->WeaponOnHand->DistanceShot);
-		AddFloat(TEXT("Amount damage:"), this->PlayerCharacter->WeaponOnHand->AmountDamage);
+
+		if (this->bEnableState)
+		{
+			AddText(TEXT("---|Player Data -> State|---"), FText::FromString(""));
+			AddBool(TEXT("Is crouching:"), this->PlayerCharacter->GetCharacterMovement()->IsCrouching());
+			AddText(TEXT("State EMovementMode:"),
+				FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->GetCharacterMovement()->MovementMode)));
+			AddText(TEXT("State move:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateMoveCharacter)));
+			AddText(TEXT("State aim:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAim)));
+			AddText(TEXT("State action:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateAction)));
+			AddText(TEXT("Inventory weapon:"), FText::FromString(UEnum::GetValueAsString(this->PlayerCharacter->StateWeapon)));
+		}
+
+		if (this->bEnableWeapon)
+		{
+			AddText(TEXT("---|Player Data -> Weapon|---"), FText::FromString(""));
+			AddBool(TEXT("Is automatic:"), this->PlayerCharacter->WeaponOnHand->bAutomatic);
+			if (this->PlayerCharacter->WeaponOnHand->bAutomatic)
+			{
+				AddFloat(TEXT("Rate on Fire:"), this->PlayerCharacter->WeaponOnHand->RateOfFire);
+			}
+			AddText(TEXT("Ammunition:"), FText::FromString(FString::FromInt(this->PlayerCharacter->WeaponOnHand->AmmoInClip) + "/" +
+														   FString::FromInt(this->PlayerCharacter->WeaponOnHand->RemainAmmo)));
+			AddFloat(TEXT("Distance shot:"), this->PlayerCharacter->WeaponOnHand->DistanceShot);
+			AddFloat(TEXT("Amount damage:"), this->PlayerCharacter->WeaponOnHand->AmountDamage);
+		}
 	}
 #endif
 }

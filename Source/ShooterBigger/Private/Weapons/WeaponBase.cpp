@@ -34,12 +34,19 @@ void AWeaponBase::MakeShot()
 
 	// spawn emitter effect
 	UGameplayStatics::SpawnEmitterAttached(
-		this->EmitterEffect, this->MeshWeapon, this->SocketMuzzle, FVector(ForceInit), this->DeltaMuzzleRot);
+		this->EmitterShotEffect, this->MeshWeapon, this->SocketMuzzle, FVector(ForceInit), this->DeltaMuzzleRot);
 
 	// Make hit
 	if (this->TryMakeHit())
 	{
-		// todo: Add decal and impact effect from normal object
+		// Spawn hole bullet decal
+		const FVector SizeDecal = FVector(FMath::RandRange(this->DecalBulletSize.Min, this->DecalBulletSize.Max));
+		UGameplayStatics::SpawnDecalAtLocation(GetWorld(), this->DecalBullet, SizeDecal, this->HitResult.ImpactPoint,
+			this->HitResult.ImpactNormal.ToOrientationRotator(), this->LifeTimeBulletDecal);
+
+		// Spawn effect from ImpactNormal hit
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(), this->ImpactHitEffect, this->HitResult.ImpactPoint, this->HitResult.ImpactNormal.ToOrientationRotator());
 	}
 }
 
@@ -79,6 +86,10 @@ bool AWeaponBase::TryMakeHit()
 		{
 			UE_LOG(LogWeaponBase, Display, TEXT("Name weapon: %s | Name owner: %s | Name Damage Actor: %s | Amount Damage: %f"), *GetName(),
 				*GetOwner()->GetName(), *HitActor->GetName(), this->AmountDamage);
+			this->PointDamageInfo.Damage = this->AmountDamage;
+			this->PointDamageInfo.HitInfo = this->HitResult;
+			this->PointDamageInfo.ShotDirection = Camera->GetCameraRotation().Vector();
+			this->PointDamageInfo.DamageTypeClass = this->DamageType;
 			HitActor->TakeDamage(this->AmountDamage, this->PointDamageInfo, GetOwner()->GetInstigatorController(), this);
 		}
 

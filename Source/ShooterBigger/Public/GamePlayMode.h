@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "HUD/GameHUD.h"
 #include "GamePlayMode.generated.h"
 
+class AGameHUD;
 class APlayerCharacter;
 /**
  *
@@ -26,6 +28,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AGamePlayMode")
 	FORCEINLINE APlayerCharacter* GetPlayerCharacter() const { return this->PlayerCharacter; }
 
+#pragma region ExecuteCheats
+
+	// Setup new state for displaying info about Control
+	UFUNCTION(Exec, Category = "Cheats|DebugManagment")
+	void DebugHUDControl(const bool State) const { this->GameHUD->SetupDebugInfoControl(State); }
+
+	// Setup new state for displaying info about State
+	UFUNCTION(Exec, Category = "Cheats|DebugManagment")
+	void DebugHUDState(const bool State) const { this->GameHUD->SetupDebugInfoState(State); }
+
+	// Setup new state for displaying info about Weapon
+	UFUNCTION(Exec, Category = "Cheats|DebugManagment")
+	void DebugHUDWeapon(const bool State) const { this->GameHUD->SetupDebugInfoWeapon(State); }
+
+#pragma endregion
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -33,4 +51,7 @@ private:
 	// Current pointer on APlayerCharacter class
 	UPROPERTY()
 	APlayerCharacter* PlayerCharacter;
+
+	UPROPERTY()
+	AGameHUD* GameHUD;
 };
