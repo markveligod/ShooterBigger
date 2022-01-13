@@ -45,6 +45,14 @@ void APlayerCharacter::BeginPlay()
 	this->StateAim = EStateAim::Hip;
 }
 
+void APlayerCharacter::SetupDebugTraceShot(const bool NewState)
+{
+	for (const auto Pair : InventoryWeapons)
+	{
+		Pair.Value->SetupDebugTraceShot(NewState);
+	}
+}
+
 void APlayerCharacter::SpawnAllWeapons()
 {
 	FTransform ActorTransform;

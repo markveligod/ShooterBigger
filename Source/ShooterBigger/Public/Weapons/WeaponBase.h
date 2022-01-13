@@ -57,6 +57,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Action")
 	void ReloadWeapon();
 
+	// Setup state debug trace shot
+	void SetupDebugTraceShot(const bool NewState) { this->bEnableDebugShot = NewState; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

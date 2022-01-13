@@ -22,7 +22,7 @@ class SHOOTERBIGGER_API APlayerCharacter : public ACharacter
 public:
 	APlayerCharacter();
 
-#pragma region GetState
+#pragma region GetData
 	// Getting current state move character
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
 	FORCEINLINE EStateMoveCharacter GetStateMoveCharacter() const { return this->StateMoveCharacter; }
@@ -38,15 +38,21 @@ public:
 	// Getting current state montage of begin animation
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
 	FORCEINLINE EStateAction GetStateActionMontage() const { return this->StateAction; }
+
+	// Getting current weapon pointer AWeaponBase class
+	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|Data")
+	FORCEINLINE AWeaponBase* GetWeaponOnHand() const { return (this->WeaponOnHand); }
+
+	// Setup new state debug trace shot for all weapon in inventory
+	void SetupDebugTraceShot(const bool NewState);
+
 #pragma endregion
 
 protected:
-#pragma region OverRiding
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
-#pragma endregion
 
 private:
 #pragma region Components

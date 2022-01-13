@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Characters/Player/PlayerCharacter.h"
 #include "GameFramework/GameModeBase.h"
 #include "HUD/GameHUD.h"
 #include "GamePlayMode.generated.h"
@@ -41,6 +42,10 @@ public:
 	// Setup new state for displaying info about Weapon
 	UFUNCTION(Exec, Category = "Cheats|DebugManagment")
 	void DebugHUDWeapon(const bool State) const { this->GameHUD->SetupDebugInfoWeapon(State); }
+
+	// Setup new state for debug trace shot
+	UFUNCTION(Exec, Category = "Cheats|DebugManagment")
+	void DebugTraceShot(const bool State) const { this->PlayerCharacter->SetupDebugTraceShot(State); }
 
 #pragma endregion
 
