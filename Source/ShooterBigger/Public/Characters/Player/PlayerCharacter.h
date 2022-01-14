@@ -139,6 +139,10 @@ private:
 	// Timer handle for fire automatic
 	FTimerHandle TimerHandleFire;
 
+	// Current cross hair display on HUD
+	UPROPERTY()
+	UUserWidget* CrossHairOnWeapon;
+
 	// Function for Horizontal and Vertical input
 	void MoveHorizontalInput(float Value);
 	void MoveVerticalInput(float Value);

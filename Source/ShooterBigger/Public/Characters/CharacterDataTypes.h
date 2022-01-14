@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Weapons/WeaponBase.h"
+#include "Blueprint/UserWidget.h"
 #include "CharacterDataTypes.generated.h"
 
 // The basic state move of the character
@@ -75,6 +76,10 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* MontageUnholster;
 
+	// Cross hair on weapon
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> CrossHairWidget;
+	
 	// To string information about weapon
 	FORCEINLINE FString ToString() const
 	{
