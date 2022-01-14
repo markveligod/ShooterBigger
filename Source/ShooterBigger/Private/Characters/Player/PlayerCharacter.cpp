@@ -5,7 +5,9 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Sound/SoundCue.h"
 #include "Weapons/WeaponBase.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogPlayerCharacter, All, All);
@@ -275,6 +277,9 @@ void APlayerCharacter::ActionJump()
 	{
 		Jump();
 		this->ActionStopRun();
+
+		// Spawn sound jump
+		UGameplayStatics::PlaySound2D(GetWorld(), this->SoundCueJump);
 	}
 }
 
@@ -301,6 +306,7 @@ void APlayerCharacter::ActionAim()
 
 	this->StateAim = EStateAim::Aiming;
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedAiming;
+	UGameplayStatics::SpawnSound2D(GetWorld(), this->SoundCueAim);
 }
 
 void APlayerCharacter::ActionHip()

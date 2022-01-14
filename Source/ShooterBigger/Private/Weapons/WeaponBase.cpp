@@ -2,6 +2,7 @@
 #include "Weapons/WeaponBase.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogWeaponBase, All, All);
 
@@ -47,6 +48,9 @@ void AWeaponBase::MakeShot()
 		// Spawn effect from ImpactNormal hit
 		UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(), this->ImpactHitEffect, this->HitResult.ImpactPoint, this->HitResult.ImpactNormal.ToOrientationRotator());
+
+		// Spawn sound impact bullet
+		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), this->SoundBullet, this->HitResult.ImpactPoint);
 	}
 }
 

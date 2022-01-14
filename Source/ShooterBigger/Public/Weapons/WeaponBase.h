@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
 
+class USoundCue;
 UCLASS(Abstract)
 class SHOOTERBIGGER_API AWeaponBase : public AActor
 {
@@ -160,6 +161,10 @@ private:
 	// The lifetime of a bullet hole on stage
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Decal")
 	float LifeTimeBulletDecal = 5.0f;
+
+	// Sound impact bullet hit
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Sound")
+	USoundCue* SoundBullet;
 
 #pragma endregion
 
