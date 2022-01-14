@@ -293,6 +293,7 @@ void APlayerCharacter::ActionBoostRun()
 	}
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedRunning;
 	this->ActionFireOff();
+	StopAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
 }
 
 void APlayerCharacter::ActionStopRun()
@@ -331,7 +332,7 @@ void APlayerCharacter::ActionRifleInv()
 
 void APlayerCharacter::ActionInspectOn()
 {
-	if (this->StateAction != EStateAction::None) return;
+	if (this->StateAction != EStateAction::None || this->StateMoveCharacter == EStateMoveCharacter::Running) return;
 
 	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
 	this->StateAction = EStateAction::Inspecting;
