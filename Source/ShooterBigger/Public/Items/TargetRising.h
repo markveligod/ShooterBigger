@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "TargetRising.generated.h"
 
+class ATrashItem;
 class USoundCue;
 UENUM()
 enum class EStateTarget
@@ -58,10 +59,23 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Settings|Hit|Sound")
 	USoundCue* SoundTargetUp;
 
-	// Registering the damage received for the current Target
+	// Sample on actor trash
+	UPROPERTY(EditDefaultsOnly, Category = "Settings|Destroy")
+	TSubclassOf<ATrashItem> TrashItem;
+
+	// A set of pieces current target when destroy
+	UPROPERTY(EditDefaultsOnly, Category = "Settings|Destroy")
+	TArray<UStaticMesh*> ArrayPartTarget;
+
+	// Registering the point damage received for the current Target
 	UFUNCTION()
 	void RegisterPointTakeDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation,
 		UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
+
+	// Registering the radial damage received for the current Target
+	UFUNCTION()
+	void RegisterRadialTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, FVector Origin, FHitResult HitInfo,
+		AController* InstigatedBy, AActor* DamageCauser);
 
 	// Reset reload to ready
 	void ResetReloadTarget();

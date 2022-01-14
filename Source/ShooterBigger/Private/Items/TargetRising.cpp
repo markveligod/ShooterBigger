@@ -1,5 +1,7 @@
 
 #include "Items/TargetRising.h"
+
+#include "Items/TrashItem.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -24,6 +26,7 @@ void ATargetRising::BeginPlay()
 	Super::BeginPlay();
 
 	OnTakePointDamage.AddDynamic(this, &ATargetRising::RegisterPointTakeDamage);
+	OnTakeRadialDamage.AddDynamic(this, &ATargetRising::RegisterRadialTakeDamage);
 	this->StateTarget = EStateTarget::Ready;
 }
 
@@ -46,13 +49,39 @@ void ATargetRising::RegisterPointTakeDamage(AActor* DamagedActor, float Damage, 
 	const FString NameDamageCauser = (DamageCauser) ? DamageCauser->GetName() : "NULL";
 
 	UE_LOG(LogTargetRising, Display,
-		TEXT("Name damage actor: %s | Amount damage: %f | Hit Location: %s | Name damage type: %s | Instigated controller: %s | Damage "
-			 "Causer : %s"),
+		TEXT("RegisterPointTakeDamage | Name damage actor: %s | Amount damage: %f | Hit Location: %s | Name damage type: %s |"
+			 "Instigated controller: %s | Damage Causer : %s"),
 		*NameDamagedActor, Damage, *HitLocation.ToString(), *NameDamageType, *NameInstigatedBy, *NameDamageCauser);
+}
+
+void ATargetRising::RegisterRadialTakeDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, FVector Origin,
+	FHitResult HitInfo, AController* InstigatedBy, AActor* DamageCauser)
+{
+	this->StateTarget = EStateTarget::Destroy;
+
+	for (const auto Mesh : this->ArrayPartTarget)
+	{
+		const ATrashItem* TempTrashItem =
+			GetWorld()->SpawnActor<ATrashItem>(GetActorLocation(), GetActorRotation(), FActorSpawnParameters());
+		TempTrashItem->GetMesh()->SetStaticMesh(Mesh);
+	}
+
+	const FString NameDamagedActor = (DamagedActor) ? DamagedActor->GetName() : "NULL";
+	const FString NameDamageType = (DamageType) ? DamageType->GetName() : "NULL";
+	const FString NameInstigatedBy = (InstigatedBy) ? InstigatedBy->GetName() : "NULL";
+	const FString NameDamageCauser = (DamageCauser) ? DamageCauser->GetName() : "NULL";
+
+	UE_LOG(LogTargetRising, Display,
+		TEXT("RegisterRadialTakeDamage | Name damage actor: %s | Amount damage: %f | Name damage type: %s | "
+			 "Instigated controller: %s | Damage Causer : %s"),
+		*NameDamagedActor, Damage, *NameDamageType, *NameInstigatedBy, *NameDamageCauser);
+	Destroy();
 }
 
 void ATargetRising::ResetReloadTarget()
 {
+	if (this->StateTarget == EStateTarget::Destroy) return;
+
 	this->MeshTarget->PlayAnimation(this->AnimTargetUp, false);
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), this->SoundTargetUp, GetActorLocation(), FRotator::ZeroRotator);
 	this->StateTarget = EStateTarget::Ready;

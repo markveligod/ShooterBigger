@@ -60,12 +60,18 @@ void AFlamBarrel::StartExplosion()
 			this->MeshBarrel->GetComponentLocation(), this->MeshBarrel->GetComponentRotation(), FActorSpawnParameters());
 		TempTrashItem->GetMesh()->SetStaticMesh(Mesh);
 		ArrayTrashItems.Add(TempTrashItem);
+		IgnoreActors.Add(TempTrashItem);
 	}
+
+	// Take radial damage
+	UGameplayStatics::ApplyRadialDamage(
+		GetWorld(), 1.0f, this->MeshBarrel->GetComponentLocation(), this->RadiusExp, this->DamageTypeBarrel, IgnoreActors);
+
+	// Physical explosion boom-boom
 	for (const auto Item : ArrayTrashItems)
 	{
 		Item->GetMesh()->AddRadialImpulse(this->MeshBarrel->GetComponentLocation(), this->RadiusExp,
 			FMath::RandRange(this->StrengthExplosion.Min, this->StrengthExplosion.Max), ERadialImpulseFalloff::RIF_Linear);
-		IgnoreActors.Add(Item);
 	}
 
 	// spawn emitter effect
@@ -80,10 +86,6 @@ void AFlamBarrel::StartExplosion()
 
 	// Spawn Sound
 	UGameplayStatics::SpawnSoundAtLocation(GetWorld(), this->SoundBoom, this->MeshBarrel->GetComponentLocation());
-
-	// Take radial damage
-	UGameplayStatics::ApplyRadialDamage(
-		GetWorld(), 1.0f, this->MeshBarrel->GetComponentLocation(), this->RadiusExp, this->DamageTypeBarrel, IgnoreActors);
 
 	if (this->bIsEnableDebug)
 	{
