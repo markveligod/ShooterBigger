@@ -101,10 +101,6 @@ void APlayerCharacter::SetupWeaponOnHand(EStateWeapon NewState)
 	}
 
 	this->StateAction = EStateAction::Holstering;
-	if (this->CrossHairOnWeapon)
-	{
-		this->CrossHairOnWeapon->RemoveFromViewport();
-	}
 	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageHolster);
 
 	FTimerHandle TimerHandle;
@@ -128,9 +124,6 @@ void APlayerCharacter::ChangeOnNewWeaponOnHand(EStateWeapon NewState)
 	this->WeaponOnHand->AttachToComponent(GetMesh(), TransformRules, this->SocketWeapon);
 
 	PlayAnimMontage(this->SampleDataWeapons[NewState].MontageUnholster);
-
-	this->CrossHairOnWeapon = CreateWidget(Cast<APlayerController>(GetController()), this->SampleDataWeapons[NewState].CrossHairWidget);
-	this->CrossHairOnWeapon->AddToViewport();
 
 	this->WeaponOnHand->SetActorHiddenInGame(false);
 	this->StateAction = EStateAction::None;
@@ -303,13 +296,11 @@ void APlayerCharacter::ActionBoostRun()
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedRunning;
 	this->ActionFireOff();
 	StopAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void APlayerCharacter::ActionStopRun()
 {
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Visible);
 }
 
 void APlayerCharacter::ActionAim()
@@ -319,14 +310,12 @@ void APlayerCharacter::ActionAim()
 	this->StateAim = EStateAim::Aiming;
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedAiming;
 	UGameplayStatics::SpawnSound2D(GetWorld(), this->SoundCueAim);
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void APlayerCharacter::ActionHip()
 {
 	this->StateAim = EStateAim::Hip;
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Visible);
 }
 
 void APlayerCharacter::ActionPistolInv()
@@ -352,14 +341,11 @@ void APlayerCharacter::ActionInspectOn()
 
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerCharacter::ActionInspectOff, RateTime, false);
-
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void APlayerCharacter::ActionInspectOff()
 {
 	this->StateAction = EStateAction::None;
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Visible);
 }
 
 void APlayerCharacter::ActionFireOn()
@@ -411,12 +397,9 @@ void APlayerCharacter::ActionReload()
 
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerCharacter::ResetActionReload, RateTime, false);
-
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void APlayerCharacter::ResetActionReload()
 {
 	this->StateAction = EStateAction::None;
-	this->CrossHairOnWeapon->SetVisibility(ESlateVisibility::Visible);
 }
