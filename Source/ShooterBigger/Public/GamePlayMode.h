@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GamePlayDataTypes.h"
 #include "Characters/Player/PlayerCharacter.h"
 #include "GameFramework/GameModeBase.h"
 #include "HUD/GameHUD.h"
@@ -21,6 +22,13 @@ class SHOOTERBIGGER_API AGamePlayMode : public AGameModeBase
 public:
 	AGamePlayMode();
 
+	// Signature on state game play
+	FOnStateGamePlayChangedSignature OnStateGamePlayChanged;
+
+	// Function for notification of EStateGamePlay changes
+	UFUNCTION(BlueprintCallable, Category = "AGamePlayMode")
+	void ChangeStateGamePlay(EStateGamePlay NewState);
+	
 	// Getting singleton pointer on current class
 	UFUNCTION(BlueprintCallable, Category = "AGamePlayMode")
 	static AGamePlayMode* Get(UWorld* World) { return Cast<AGamePlayMode>(World->GetAuthGameMode()); }
@@ -51,6 +59,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void StartPlay() override;
 
 private:
 	// Current pointer on APlayerCharacter class
@@ -59,4 +68,7 @@ private:
 
 	UPROPERTY()
 	AGameHUD* GameHUD;
+
+	// Current state game play
+	EStateGamePlay StateGamePlay = EStateGamePlay::None;
 };

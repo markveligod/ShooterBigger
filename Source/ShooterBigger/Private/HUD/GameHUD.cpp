@@ -4,6 +4,9 @@
 #include "GamePlayMode.h"
 #include "Characters/Player/PlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HUD/UI/UserWidgetBase.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogGameHUD, All, All);
 
 void AGameHUD::BeginPlay()
 {
@@ -13,6 +16,19 @@ void AGameHUD::BeginPlay()
 	checkf(this->GamePlayMode, TEXT("Game play mode is nullptr"));
 	this->PlayerCharacter = this->GamePlayMode->GetPlayerCharacter();
 	checkf(this->PlayerCharacter, TEXT("Player character is nullptr"));
+
+	this->GameWidgets.Add(EStateGamePlay::GameProcess, CreateWidget<UUserWidgetBase>(GetWorld(), this->GamePlayWidget));
+
+	for (const auto Pair : this->GameWidgets)
+	{
+		Pair.Value->AddToViewport();
+		Pair.Value->SetVisibility(ESlateVisibility::Hidden);
+
+		UE_LOG(LogGameHUD, Display, TEXT("New game widget: %s - %s"), *UEnum::GetValueAsString(Pair.Key),
+			*Pair.Value->GetName());
+	}
+	
+	this->GamePlayMode->OnStateGamePlayChanged.AddUObject(this, &AGameHUD::OnChangedStateGamePlay);
 }
 
 void AGameHUD::DrawHUD()
@@ -59,4 +75,18 @@ void AGameHUD::DrawHUD()
 		}
 	}
 #endif
+}
+
+void AGameHUD::OnChangedStateGamePlay(EStateGamePlay NewState)
+{
+	if (!this->GameWidgets.Contains(NewState)) return;
+
+	if (this->VisibleWidget)
+	{
+		this->VisibleWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+	this->VisibleWidget = this->GameWidgets[NewState];
+	this->VisibleWidget->SetVisibility(ESlateVisibility::Visible);
+
+	UE_LOG(LogGameHUD, Display, TEXT("New game widget visible: %s"), *this->VisibleWidget->GetName());
 }

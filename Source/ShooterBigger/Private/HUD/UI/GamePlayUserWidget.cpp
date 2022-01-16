@@ -22,11 +22,16 @@ void UGamePlayUserWidget::OnStateWeaponChanged(EStateWeapon NewState)
 
 	FSlateBrush SlateBrushBody;
 	SlateBrushBody.SetResourceObject(CurrentWeapon->GetTextureWeaponBody());
+	SlateBrushBody.SetImageSize(this->BodyWeaponImage->Brush.ImageSize);
 	this->BodyWeaponImage->SetBrush(SlateBrushBody);
+	
 	FSlateBrush SlateBrushMagazine;
 	SlateBrushMagazine.SetResourceObject(CurrentWeapon->GetTextureWeaponMagazine());
+	SlateBrushMagazine.SetImageSize(this->MagazineWeaponImage->Brush.ImageSize);
 	this->MagazineWeaponImage->SetBrush(SlateBrushMagazine);
+
 	FSlateBrush SlateBrushIronsights;
 	SlateBrushIronsights.SetResourceObject(CurrentWeapon->GetTextureWeaponIronsights());
+	SlateBrushIronsights.SetImageSize(this->IronsightsWeaponImage->Brush.ImageSize);
 	this->IronsightsWeaponImage->SetBrush(SlateBrushIronsights);
 }

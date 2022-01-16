@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GamePlayDataTypes.h"
 #include "HUD/DebugHUD.h"
 #include "GameHUD.generated.h"
 
+class UUserWidgetBase;
 class APlayerCharacter;
 class AGamePlayMode;
 /**
@@ -41,6 +43,7 @@ private:
 	UPROPERTY()
 	APlayerCharacter* PlayerCharacter;
 
+#pragma region Debug
 	// Displaying debug information about Control
 	UPROPERTY(EditDefaultsOnly, Category = "Debug|Managment")
 	bool bEnableControl = true;
@@ -52,4 +55,19 @@ private:
 	// Displaying debug information about Weapon
 	UPROPERTY(EditDefaultsOnly, Category = "Debug|Managment")
 	bool bEnableWeapon = true;
+#pragma endregion
+
+	// Game play widget
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+	TSubclassOf<UUserWidgetBase> GamePlayWidget;
+	
+	// Storing basic game widgets in the TMap
+	TMap<EStateGamePlay, UUserWidgetBase*> GameWidgets;
+
+	// Visible gameplay widget
+	UPROPERTY()
+	UUserWidgetBase* VisibleWidget = nullptr;
+	
+	// The basic gameplay has changed
+	void OnChangedStateGamePlay(EStateGamePlay NewState);
 };
