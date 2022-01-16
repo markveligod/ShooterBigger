@@ -13,6 +13,9 @@ enum class EStateMoveCharacter : uint8
 	Running
 };
 
+// Signature to change the state of the move character
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStateMoveCharacterChangedSignature, EStateMoveCharacter);
+
 // The state of the player when aiming or from the hip
 UENUM()
 enum class EStateAim : uint8
@@ -22,6 +25,9 @@ enum class EStateAim : uint8
 	Aiming
 };
 
+// Signature to change the state of the Aim
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStateAimChangedSignature, EStateAim);
+
 // The state of the weapon that is in the pseudo inventory
 UENUM()
 enum class EStateWeapon : uint8
@@ -30,6 +36,9 @@ enum class EStateWeapon : uint8
 	Pistol,
 	Rifle
 };
+
+// Signature to change the state of the weapon
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStateWeaponChangedSignature, EStateWeapon);
 
 // State of continuous action animations montage
 UENUM()
@@ -41,6 +50,9 @@ enum class EStateAction : uint8
 	Holstering,
 	Fire
 };
+
+// Signature to change the state of the action
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStateActionChangedSignature, EStateAction);
 
 // A structure for storing data about weapons in a pseudo inventory
 USTRUCT(BlueprintType)

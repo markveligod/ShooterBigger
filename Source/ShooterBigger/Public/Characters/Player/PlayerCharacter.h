@@ -22,6 +22,13 @@ class SHOOTERBIGGER_API APlayerCharacter : public ACharacter
 public:
 	APlayerCharacter();
 
+#pragma region Signature
+	FOnStateMoveCharacterChangedSignature OnStateMoveCharacterChanged;
+	FOnStateAimChangedSignature OnStateAimChanged;
+	FOnStateWeaponChangedSignature OnStateWeaponChanged;
+	FOnStateActionChangedSignature OnStateActionChanged;
+#pragma endregion 
+	
 #pragma region GetData
 	// Getting current state move character
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|State")
@@ -42,11 +49,12 @@ public:
 	// Getting current weapon pointer AWeaponBase class
 	UFUNCTION(BlueprintCallable, Category = "APlayerCharacter|Data")
 	FORCEINLINE AWeaponBase* GetWeaponOnHand() const { return (this->WeaponOnHand); }
-
+	
+#pragma endregion
+	
 	// Setup new state debug trace shot for all weapon in inventory
 	void SetupDebugTraceShot(const bool NewState);
 
-#pragma endregion
 
 protected:
 	virtual void BeginPlay() override;

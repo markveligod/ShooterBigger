@@ -1,7 +1,6 @@
 
 
 #include "Characters/Player/PlayerCharacter.h"
-
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -101,6 +100,8 @@ void APlayerCharacter::SetupWeaponOnHand(EStateWeapon NewState)
 	}
 
 	this->StateAction = EStateAction::Holstering;
+	this->OnStateActionChanged.Broadcast(this->StateAction);
+
 	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageHolster);
 
 	FTimerHandle TimerHandle;
@@ -128,6 +129,8 @@ void APlayerCharacter::ChangeOnNewWeaponOnHand(EStateWeapon NewState)
 	this->WeaponOnHand->SetActorHiddenInGame(false);
 	this->StateAction = EStateAction::None;
 	this->StateWeapon = NewState;
+	this->OnStateWeaponChanged.Broadcast(NewState);
+	this->OnStateActionChanged.Broadcast(this->StateAction);
 }
 
 void APlayerCharacter::Tick(float DeltaSeconds)
@@ -143,19 +146,26 @@ void APlayerCharacter::CheckStateMoveCharacter()
 {
 	if (!GetCharacterMovement()->IsWalking()) return;
 
+	EStateMoveCharacter NewState = EStateMoveCharacter::None;
+	
 	const float SpeedVelocity = GetVelocity().Size();
 	if (SpeedVelocity == 0.0f)
 	{
-		this->StateMoveCharacter = EStateMoveCharacter::Idle;
+		NewState = EStateMoveCharacter::Idle;
 	}
 	else if (SpeedVelocity > 0.0f && SpeedVelocity <= this->SpeedWalking)
 	{
-		this->StateMoveCharacter = EStateMoveCharacter::Walk;
+		NewState = EStateMoveCharacter::Walk;
 	}
 	else if ((this->SpeedWalking + ((this->SpeedRunning - this->SpeedWalking) / 4)) <= SpeedVelocity && SpeedVelocity <= this->SpeedRunning)
 	{
-		this->StateMoveCharacter = EStateMoveCharacter::Running;
+		NewState = EStateMoveCharacter::Running;
 	}
+
+	if (NewState == EStateMoveCharacter::None || NewState == this->StateMoveCharacter) return;
+
+	this->StateMoveCharacter = NewState;
+	this->OnStateMoveCharacterChanged.Broadcast(NewState);
 }
 
 void APlayerCharacter::UpdateLocCamera(float DeltaTime)
@@ -307,15 +317,25 @@ void APlayerCharacter::ActionAim()
 {
 	if (this->StateAction != EStateAction::None || this->StateMoveCharacter == EStateMoveCharacter::Running) return;
 
+	// Change state and speed
 	this->StateAim = EStateAim::Aiming;
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedAiming;
+
+	// Spawn sound
 	UGameplayStatics::SpawnSound2D(GetWorld(), this->SoundCueAim);
+
+	// Broadcast about changed state
+	this->OnStateAimChanged.Broadcast(this->StateAim);
 }
 
 void APlayerCharacter::ActionHip()
 {
+	// Change state and speed
 	this->StateAim = EStateAim::Hip;
 	GetCharacterMovement()->MaxWalkSpeed = this->SpeedWalking;
+
+	// Broadcast about changed state
+	this->OnStateAimChanged.Broadcast(this->StateAim);
 }
 
 void APlayerCharacter::ActionPistolInv()
@@ -336,9 +356,10 @@ void APlayerCharacter::ActionInspectOn()
 {
 	if (this->StateAction != EStateAction::None || this->StateMoveCharacter == EStateMoveCharacter::Running) return;
 
-	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
 	this->StateAction = EStateAction::Inspecting;
-
+	this->OnStateActionChanged.Broadcast(this->StateAction);
+	
+	const float RateTime = PlayAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerCharacter::ActionInspectOff, RateTime, false);
 }
@@ -346,6 +367,7 @@ void APlayerCharacter::ActionInspectOn()
 void APlayerCharacter::ActionInspectOff()
 {
 	this->StateAction = EStateAction::None;
+	this->OnStateActionChanged.Broadcast(this->StateAction);
 }
 
 void APlayerCharacter::ActionFireOn()
@@ -353,6 +375,7 @@ void APlayerCharacter::ActionFireOn()
 	if (this->StateAction != EStateAction::None) return;
 
 	this->StateAction = EStateAction::Fire;
+	this->OnStateActionChanged.Broadcast(this->StateAction);
 
 	this->MakeShot();
 	if (this->WeaponOnHand->IsWeaponAutomatic())
@@ -378,8 +401,11 @@ void APlayerCharacter::MakeShot()
 
 void APlayerCharacter::ActionFireOff()
 {
+	if (this->StateAction != EStateAction::Fire) return;
+
 	GetWorldTimerManager().ClearTimer(this->TimerHandleFire);
 	this->StateAction = EStateAction::None;
+	this->OnStateActionChanged.Broadcast(this->StateAction);
 }
 
 void APlayerCharacter::ActionReload()
@@ -387,6 +413,7 @@ void APlayerCharacter::ActionReload()
 	if (this->StateAction != EStateAction::None) return;
 
 	this->StateAction = EStateAction::Reloading;
+	this->OnStateActionChanged.Broadcast(this->StateAction);
 
 	UAnimMontage* PlayMontageReload = (this->WeaponOnHand->IsEmptyAmmoInClip())
 										  ? this->SampleDataWeapons[this->StateWeapon].MontageReloadEmpty
@@ -402,4 +429,5 @@ void APlayerCharacter::ActionReload()
 void APlayerCharacter::ResetActionReload()
 {
 	this->StateAction = EStateAction::None;
+	this->OnStateActionChanged.Broadcast(this->StateAction);
 }
