@@ -37,7 +37,7 @@ private:
 	UTextBlock* AmmoText;
 	// Display max ammo in
 	UPROPERTY(Transient, meta = (BindWidget))
-	UTextBlock* MaxAmmoText;
+	UTextBlock* RemainAmmoText;
 	
 	// State weapon changed
 	void OnStateWeaponChanged(EStateWeapon NewState);

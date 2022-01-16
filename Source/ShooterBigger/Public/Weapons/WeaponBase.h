@@ -43,11 +43,16 @@ public:
 
 	// Get Ammunition Current
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
-	FORCEINLINE int32 GetAmmunitionCurrent() const { return this->AmmoInClip; }
+	FORCEINLINE int32 GetAmmoInClip() const { return this->AmmoInClip; }
 
 	// Is Automatic?
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
 	FORCEINLINE bool IsWeaponAutomatic() const { return this->bAutomatic; }
+
+	// Getting ammo in in the pouch
+	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
+	FORCEINLINE int32 GetRemainAmmo() const { return this->RemainAmmo; }
+	
 #pragma endregion
 
 	// Shooting from weapon
