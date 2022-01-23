@@ -38,7 +38,18 @@ private:
 	// Display max ammo in
 	UPROPERTY(Transient, meta = (BindWidget))
 	UTextBlock* RemainAmmoText;
+
+	// Visible texture of the sight from the weapon
+	UPROPERTY(Transient, meta = (BindWidget))
+	UImage* CrossHairImage;
 	
 	// State weapon changed
 	void OnStateWeaponChanged(EStateWeapon NewState);
+
+	// State aim changed
+	void OnStateAimChanged(EStateAim NewState);
+
+	// State move character changed
+	void OnStateMoveCharacterChanged(EStateMoveCharacter NewState);
 };
+

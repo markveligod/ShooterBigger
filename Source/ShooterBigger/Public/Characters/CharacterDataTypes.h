@@ -87,10 +87,6 @@ struct FWeaponData
 	// Animation Montage played when the character is unholstering their weapon.
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* MontageUnholster;
-
-	// Cross hair on weapon
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> CrossHairWidget;
 	
 	// To string information about weapon
 	FORCEINLINE FString ToString() const

@@ -10,6 +10,8 @@ void UGamePlayUserWidget::NativeOnInitialized()
 	Super::NativeOnInitialized();
 
 	GetGamePlayMode()->GetPlayerCharacter()->OnStateWeaponChanged.AddUObject(this, &UGamePlayUserWidget::OnStateWeaponChanged);
+	GetGamePlayMode()->GetPlayerCharacter()->OnStateAimChanged.AddUObject(this, &UGamePlayUserWidget::OnStateAimChanged);
+	GetGamePlayMode()->GetPlayerCharacter()->OnStateMoveCharacterChanged.AddUObject(this, &UGamePlayUserWidget::OnStateMoveCharacterChanged);
 }
 
 void UGamePlayUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -44,4 +46,20 @@ void UGamePlayUserWidget::OnStateWeaponChanged(EStateWeapon NewState)
 	SlateBrushIronsights.SetResourceObject(CurrentWeapon->GetTextureWeaponIronsights());
 	SlateBrushIronsights.SetImageSize(this->IronsightsWeaponImage->Brush.ImageSize);
 	this->IronsightsWeaponImage->SetBrush(SlateBrushIronsights);
+
+	FSlateBrush SlateBrushCrosshair;
+	SlateBrushCrosshair.SetResourceObject(CurrentWeapon->GetTextureCrossHair());
+	SlateBrushCrosshair.SetImageSize(FVector2D(CurrentWeapon->GetTextureCrossHair()->GetSizeX(), CurrentWeapon->GetTextureCrossHair()->GetSizeY()));
+	this->CrossHairImage->SetBrush(SlateBrushCrosshair);
+}
+
+void UGamePlayUserWidget::OnStateAimChanged(EStateAim NewState)
+{
+	this->CrossHairImage->SetVisibility(NewState == EStateAim::Aiming ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+}
+
+void UGamePlayUserWidget::OnStateMoveCharacterChanged(EStateMoveCharacter NewState)
+{
+	this->CrossHairImage->SetVisibility(NewState == EStateMoveCharacter::Running ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+
 }

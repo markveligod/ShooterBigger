@@ -88,7 +88,7 @@ void APlayerCharacter::SetupWeaponOnHand(EStateWeapon NewState)
 {
 	if (this->StateWeapon == NewState)
 	{
-		UE_LOG(LogPlayerCharacter, Error, TEXT("Current and new state equal %s"), *UEnum::GetValueAsString(NewState));
+		UE_LOG(LogPlayerCharacter, Warning, TEXT("Current and new state equal %s"), *UEnum::GetValueAsString(NewState));
 		return;
 	}
 
@@ -303,9 +303,10 @@ void APlayerCharacter::ActionBoostRun()
 	{
 		UnCrouch();
 	}
-	GetCharacterMovement()->MaxWalkSpeed = this->SpeedRunning;
 	this->ActionFireOff();
+	this->ActionHip();
 	StopAnimMontage(this->SampleDataWeapons[this->StateWeapon].MontageInspect);
+	GetCharacterMovement()->MaxWalkSpeed = this->SpeedRunning;
 }
 
 void APlayerCharacter::ActionStopRun()

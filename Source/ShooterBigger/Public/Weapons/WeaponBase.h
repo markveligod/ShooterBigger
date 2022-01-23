@@ -29,6 +29,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Texture")
 	FORCEINLINE UTexture2D* GetTextureWeaponIronsights() const { return this->TextureWeaponIronsights; }
 
+	// Getting TextureCrossHair
+	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Texture")
+	FORCEINLINE UTexture2D* GetTextureCrossHair() const { return this->TextureCrossHair; }
+
 	// Getting Rate of fire
 	UFUNCTION(BlueprintCallable, Category = "AWeaponBase|Data")
 	FORCEINLINE float GetRateOfFire() const { return this->RateOfFire; }
@@ -138,6 +142,10 @@ private:
 	// Texture displayed in the player's heads up display to represent this Weapon's ironsights.
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Display")
 	UTexture2D* TextureWeaponIronsights;
+
+	// Texture displayed in the player's heads up display to represent this Weapon's crosshair.
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Display")
+	UTexture2D* TextureCrossHair;
 
 	// Spawn effect Emitter for weapons
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | VFX | Shot")
